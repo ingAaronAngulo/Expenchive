@@ -1,0 +1,58 @@
+import { useState } from 'react';
+import { Plus, CreditCard } from 'lucide-react';
+import { useCreditCards } from '@/hooks/useCreditCards';
+import { Button } from '@/components/ui/button';
+import { CreditCardsList } from '@/components/credit-cards/CreditCardsList';
+import { AddCreditCardDialog } from '@/components/credit-cards/AddCreditCardDialog';
+import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+import { ErrorMessage } from '@/components/common/ErrorMessage';
+import { EmptyState } from '@/components/common/EmptyState';
+
+export function CreditCards() {
+  const { creditCards, loading, error } = useCreditCards();
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Credit Cards</h1>
+          <p className="text-muted-foreground mt-1">
+            Track your credit cards and manage debt
+          </p>
+        </div>
+        <Button onClick={() => setIsAddDialogOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          Add Card
+        </Button>
+      </div>
+
+      {error && <ErrorMessage message={error} />}
+
+      {!error && creditCards.length === 0 ? (
+        <EmptyState
+          icon={CreditCard}
+          title="No credit cards yet"
+          description="Add your first credit card to start tracking credit expenses and debt."
+          actionLabel="Add Credit Card"
+          onAction={() => setIsAddDialogOpen(true)}
+        />
+      ) : (
+        <CreditCardsList creditCards={creditCards} />
+      )}
+
+      <AddCreditCardDialog
+        open={isAddDialogOpen}
+        onOpenChange={setIsAddDialogOpen}
+      />
+    </div>
+  );
+}

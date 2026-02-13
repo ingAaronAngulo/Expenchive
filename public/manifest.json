@@ -1,0 +1,17 @@
+{
+  "name": "Expenchive",
+  "short_name": "Expenchive",
+  "description": "Track your expenses",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
