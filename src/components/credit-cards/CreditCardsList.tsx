@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MoreVertical, Trash2, CreditCard as CreditCardIcon, Pencil, Calendar, Clock } from 'lucide-react';
+import { MoreVertical, Trash2, CreditCard as CreditCardIcon, Pencil, Calendar, Clock, DollarSign } from 'lucide-react';
 import { deleteCreditCard } from '@/services/credit-cards.service';
 import { formatCurrency } from '@/utils/formatters';
 import { adjustToPreviousBusinessDay } from '@/utils/date';
@@ -13,8 +13,10 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { EditCreditCardDialog } from './EditCreditCardDialog';
+import { PayCreditCardDialog } from './PayCreditCardDialog';
 
 interface CreditCardsListProps {
   creditCards: CreditCard[];
@@ -94,6 +96,7 @@ function getClosingDateInfo(card: CreditCard) {
 export function CreditCardsList({ creditCards }: CreditCardsListProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [editingCard, setEditingCard] = useState<CreditCard | null>(null);
+  const [payingCard, setPayingCard] = useState<CreditCard | null>(null);
 
   const handleDelete = async (cardId: string) => {
     if (!confirm('Are you sure you want to delete this credit card?')) return;
@@ -133,6 +136,11 @@ export function CreditCardsList({ creditCards }: CreditCardsListProps) {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setPayingCard(card)}>
+                    <DollarSign className="mr-2 h-4 w-4" />
+                    Pay Card
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => setEditingCard(card)}>
                     <Pencil className="mr-2 h-4 w-4" />
                     Edit
@@ -229,6 +237,12 @@ export function CreditCardsList({ creditCards }: CreditCardsListProps) {
         open={!!editingCard}
         onOpenChange={(open) => !open && setEditingCard(null)}
         creditCard={editingCard}
+      />
+
+      <PayCreditCardDialog
+        open={!!payingCard}
+        onOpenChange={(open) => !open && setPayingCard(null)}
+        creditCard={payingCard}
       />
     </>
   );
