@@ -41,9 +41,9 @@ export function ExpensesList({ expenses }: ExpensesListProps) {
         {expenses.map((expense) => (
           <Card key={expense.id}>
             <CardContent className="p-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="flex-1">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     {expense.paymentType === 'credit' ? (
                       <CreditCard className="h-4 w-4 text-muted-foreground" />
                     ) : (
@@ -54,7 +54,7 @@ export function ExpensesList({ expenses }: ExpensesListProps) {
                       {expense.category}
                     </span>
                   </div>
-                  <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 mt-1 text-sm text-muted-foreground">
                     <span>{formatDate(expense.date)}</span>
                     {expense.isInstallment && (
                       <span className="text-xs">
@@ -64,8 +64,8 @@ export function ExpensesList({ expenses }: ExpensesListProps) {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4">
-                  <div className="text-right">
+                <div className="flex items-center justify-between sm:justify-end gap-4">
+                  <div className="text-left sm:text-right">
                     <div className="font-bold text-lg">
                       {formatCurrency(expense.amount)}
                     </div>

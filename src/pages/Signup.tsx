@@ -61,7 +61,7 @@ export function Signup() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background">
+    <div className="flex items-center justify-center min-h-screen bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">Create Account</CardTitle>
@@ -69,7 +69,7 @@ export function Signup() {
         </CardHeader>
         <CardContent className="space-y-4">
           {error && (
-            <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded">
+            <div className="p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded">
               {error}
             </div>
           )}
@@ -84,7 +84,7 @@ export function Signup() {
                 {...register('displayName')}
               />
               {errors.displayName && (
-                <p className="text-sm text-red-600">{errors.displayName.message}</p>
+                <p className="text-sm text-destructive">{errors.displayName.message}</p>
               )}
             </div>
 
@@ -97,7 +97,7 @@ export function Signup() {
                 {...register('email')}
               />
               {errors.email && (
-                <p className="text-sm text-red-600">{errors.email.message}</p>
+                <p className="text-sm text-destructive">{errors.email.message}</p>
               )}
             </div>
 
@@ -110,7 +110,7 @@ export function Signup() {
                 {...register('password')}
               />
               {errors.password && (
-                <p className="text-sm text-red-600">{errors.password.message}</p>
+                <p className="text-sm text-destructive">{errors.password.message}</p>
               )}
             </div>
 
@@ -123,7 +123,7 @@ export function Signup() {
                 {...register('confirmPassword')}
               />
               {errors.confirmPassword && (
-                <p className="text-sm text-red-600">{errors.confirmPassword.message}</p>
+                <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
               )}
             </div>
 

@@ -18,8 +18,8 @@ export function Settings() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Settings</h1>
-        <p className="text-muted-foreground mt-1">
+        <h1 className="text-2xl md:text-3xl font-bold">Settings</h1>
+        <p className="text-sm md:text-base text-muted-foreground mt-1">
           Manage your account and recurring expenses
         </p>
       </div>
@@ -46,14 +46,14 @@ export function Settings() {
 
       {/* Recurring Expenses Section */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <CardTitle>Recurring Expenses</CardTitle>
             <CardDescription>
               Expenses that repeat automatically (will be created by Cloud Functions)
             </CardDescription>
           </div>
-          <Button onClick={() => setIsAddDialogOpen(true)}>
+          <Button onClick={() => setIsAddDialogOpen(true)} className="w-full sm:w-auto">
             <Plus className="mr-2 h-4 w-4" />
             Add Recurring
           </Button>
@@ -80,9 +80,9 @@ export function Settings() {
       </Card>
 
       {/* Note about Cloud Functions */}
-      <Card className="border-blue-200 bg-blue-50">
+      <Card className="border-primary/20 bg-primary/5">
         <CardContent className="pt-6">
-          <p className="text-sm text-blue-900">
+          <p className="text-sm text-foreground">
             <strong>Note:</strong> Recurring expenses are templates that will be automatically
             created by Cloud Functions. Once deployed, expenses will be created on their due dates
             and your account balances or credit card debt will be updated automatically.
