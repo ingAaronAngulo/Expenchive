@@ -3,7 +3,6 @@ import {
   doc,
   addDoc,
   updateDoc,
-  deleteDoc,
   query,
   where,
   getDocs,
@@ -11,12 +10,10 @@ import {
   serverTimestamp,
   Timestamp,
   runTransaction,
-  writeBatch,
 } from 'firebase/firestore';
 import { db } from '@/config/firebase';
 import type { Expense, CreateExpenseData, UpdateExpenseData } from '@/types';
 import { calculateMonthlyPayment } from '@/utils/calculations';
-import { updateAccountBalance } from './accounts.service';
 import { createExpenseSchema, updateExpenseSchema } from '@/schemas';
 
 const COLLECTION_NAME = 'expenses';

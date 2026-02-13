@@ -4,7 +4,7 @@
  * This module provides helpers to ensure data consistency and prevent race conditions
  */
 
-import { runTransaction, doc, DocumentReference, Transaction } from 'firebase/firestore';
+import { runTransaction, doc, Transaction } from 'firebase/firestore';
 import { db } from '@/config/firebase';
 
 /**

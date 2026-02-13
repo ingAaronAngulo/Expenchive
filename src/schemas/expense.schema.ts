@@ -11,7 +11,7 @@ export const createExpenseSchema = z.object({
   category: z.string().min(1, 'Category is required'),
   date: z.union([z.date(), z.instanceof(Object)]), // Date or Firestore Timestamp
   paymentType: z.enum(['debit', 'credit'], {
-    errorMap: () => ({ message: 'Payment type must be debit or credit' }),
+    message: 'Payment type must be debit or credit',
   }),
 
   // Optional fields

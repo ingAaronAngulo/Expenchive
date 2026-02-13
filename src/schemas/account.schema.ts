@@ -7,7 +7,7 @@ import { z } from 'zod';
 export const createAccountSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100, 'Name is too long'),
   type: z.enum(['checking', 'savings', 'investment', 'cash'], {
-    errorMap: () => ({ message: 'Invalid account type' }),
+    message: 'Invalid account type',
   }),
   balance: z.number().finite('Balance must be a valid number'),
   currency: z.string().length(3, 'Currency must be 3 characters (e.g., USD)').optional(),

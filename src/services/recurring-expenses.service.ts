@@ -27,7 +27,7 @@ export async function createRecurringExpense(
   // Validate input data
   const validatedData = createRecurringExpenseSchema.parse(data);
 
-  const startDate = validatedData.startDate instanceof Date ? validatedData.startDate : validatedData.startDate.toDate();
+  const startDate = validatedData.startDate instanceof Date ? validatedData.startDate : (validatedData.startDate as Timestamp).toDate();
   const nextDueDate = calculateNextDueDate(startDate, validatedData.frequency);
 
   const recurringData = {

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { MoreVertical, Trash2, CreditCard as CreditCardIcon, Pencil, Calendar, Clock } from 'lucide-react';
 import { deleteCreditCard } from '@/services/credit-cards.service';
 import { formatCurrency } from '@/utils/formatters';
-import { getNextPaymentDueDate, adjustToPreviousBusinessDay } from '@/utils/date';
+import { adjustToPreviousBusinessDay } from '@/utils/date';
 import { differenceInDays, format, setDate } from 'date-fns';
 import type { CreditCard } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

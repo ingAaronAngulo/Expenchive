@@ -122,7 +122,7 @@ export function getActualPaymentDueDate(
  * @returns The next payment due date, adjusted for weekends/holidays
  */
 export function getNextPaymentDueDate(
-  billingCycleDay: number,
+  _billingCycleDay: number,
   paymentDueDay: number
 ): Date {
   const now = new Date();
