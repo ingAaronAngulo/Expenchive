@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Receipt } from 'lucide-react';
+import { Plus, Receipt, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useExpenses } from '@/hooks/useExpenses';
 import { Button } from '@/components/ui/button';
 import { ExpensesList } from '@/components/expenses/ExpensesList';
@@ -9,10 +9,18 @@ import { ErrorMessage } from '@/components/common/ErrorMessage';
 import { EmptyState } from '@/components/common/EmptyState';
 
 export function Expenses() {
-  const { expenses, loading, error } = useExpenses();
+  const { expenses, loading, error, pagination } = useExpenses();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
-  if (loading) {
+  const handleDialogClose = (open: boolean) => {
+    setIsAddDialogOpen(open);
+    // Reset to first page when dialog closes (to show new expense)
+    if (!open) {
+      pagination.resetPagination();
+    }
+  };
+
+  if (loading && pagination.currentPage === 1) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <LoadingSpinner size="lg" />
@@ -37,7 +45,7 @@ export function Expenses() {
 
       {error && <ErrorMessage message={error} />}
 
-      {!error && expenses.length === 0 ? (
+      {!error && expenses.length === 0 && pagination.currentPage === 1 ? (
         <EmptyState
           icon={Receipt}
           title="No expenses yet"
@@ -46,12 +54,52 @@ export function Expenses() {
           onAction={() => setIsAddDialogOpen(true)}
         />
       ) : (
-        <ExpensesList expenses={expenses} />
+        <>
+          {loading ? (
+            <div className="flex items-center justify-center min-h-[200px]">
+              <LoadingSpinner size="lg" />
+            </div>
+          ) : (
+            <ExpensesList
+              expenses={expenses}
+              onExpenseChange={pagination.resetPagination}
+            />
+          )}
+
+          {/* Pagination Controls */}
+          {expenses.length > 0 && (pagination.hasNextPage || pagination.hasPrevPage) && (
+            <div className="flex items-center justify-between border-t pt-4">
+              <div className="text-sm text-muted-foreground">
+                Page {pagination.currentPage} • {expenses.length} expenses
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={pagination.prevPage}
+                  disabled={!pagination.hasPrevPage || loading}
+                >
+                  <ChevronLeft className="h-4 w-4 mr-1" />
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={pagination.nextPage}
+                  disabled={!pagination.hasNextPage || loading}
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       <AddExpenseDialog
         open={isAddDialogOpen}
-        onOpenChange={setIsAddDialogOpen}
+        onOpenChange={handleDialogClose}
       />
     </div>
   );

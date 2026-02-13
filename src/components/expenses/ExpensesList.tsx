@@ -15,9 +15,10 @@ import { EditExpenseDialog } from './EditExpenseDialog';
 
 interface ExpensesListProps {
   expenses: Expense[];
+  onExpenseChange?: () => void;
 }
 
-export function ExpensesList({ expenses }: ExpensesListProps) {
+export function ExpensesList({ expenses, onExpenseChange }: ExpensesListProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
 
@@ -27,11 +28,19 @@ export function ExpensesList({ expenses }: ExpensesListProps) {
     try {
       setDeletingId(expenseId);
       await deleteExpense(expenseId);
+      onExpenseChange?.();
     } catch (error) {
       console.error('Failed to delete expense:', error);
       alert('Failed to delete expense');
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const handleEditClose = (open: boolean) => {
+    if (!open) {
+      setEditingExpense(null);
+      onExpenseChange?.();
     }
   };
 
@@ -110,7 +119,7 @@ export function ExpensesList({ expenses }: ExpensesListProps) {
 
       <EditExpenseDialog
         open={!!editingExpense}
-        onOpenChange={(open) => !open && setEditingExpense(null)}
+        onOpenChange={handleEditClose}
         expense={editingExpense}
       />
     </>

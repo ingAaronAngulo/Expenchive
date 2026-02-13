@@ -9,7 +9,6 @@ import {
   getDocs,
   serverTimestamp,
   runTransaction,
-  getDoc,
 } from 'firebase/firestore';
 import { db } from '@/config/firebase';
 import type { CreditCard, CreateCreditCardData, UpdateCreditCardData } from '@/types';
