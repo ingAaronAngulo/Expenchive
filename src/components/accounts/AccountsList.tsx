@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MoreVertical, Edit, Trash2, Wallet } from 'lucide-react';
+import { MoreVertical, Edit, Trash2, Wallet, Plus } from 'lucide-react';
 import { deleteAccount } from '@/services/accounts.service';
 import { formatCurrency, formatAccountType } from '@/utils/formatters';
 import type { Account } from '@/types';
@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { EditAccountDialog } from './EditAccountDialog';
+import { AddBalanceDialog } from './AddBalanceDialog';
 
 interface AccountsListProps {
   accounts: Account[];
@@ -19,6 +20,7 @@ interface AccountsListProps {
 
 export function AccountsList({ accounts }: AccountsListProps) {
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
+  const [addBalanceAccount, setAddBalanceAccount] = useState<Account | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const calculateDailyReturn = (balance: number, annualReturn: number | null | undefined) => {
@@ -74,6 +76,10 @@ export function AccountsList({ accounts }: AccountsListProps) {
                   <DropdownMenuItem onClick={() => setEditingAccount(account)}>
                     <Edit className="mr-2 h-4 w-4" />
                     Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setAddBalanceAccount(account)}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Balance
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => handleDelete(account.id)}
@@ -132,6 +138,12 @@ export function AccountsList({ accounts }: AccountsListProps) {
         open={!!editingAccount}
         onOpenChange={(open) => !open && setEditingAccount(null)}
         account={editingAccount}
+      />
+
+      <AddBalanceDialog
+        open={!!addBalanceAccount}
+        onOpenChange={(open) => !open && setAddBalanceAccount(null)}
+        account={addBalanceAccount}
       />
     </>
   );
