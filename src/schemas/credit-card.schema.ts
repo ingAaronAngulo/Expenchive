@@ -9,6 +9,10 @@ export const createCreditCardSchema = z.object({
   lastFourDigits: z.string()
     .regex(/^\d{4}$/, 'Must be exactly 4 digits')
     .optional(),
+  clabe: z.string()
+    .regex(/^\d{18}$/, 'CLABE must be exactly 18 digits')
+    .nullable()
+    .optional(),
   creditLimit: z.number()
     .positive('Credit limit must be positive')
     .finite('Credit limit must be a valid number'),
@@ -49,6 +53,7 @@ export const createCreditCardSchema = z.object({
 export const updateCreditCardSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   lastFourDigits: z.string().regex(/^\d{4}$/).optional(),
+  clabe: z.string().regex(/^\d{18}$/).nullable().optional(),
   creditLimit: z.number().positive().finite().optional(),
   currentBalance: z.number().min(0).finite().optional(),
   interestRate: z.number().min(0).max(100).nullable().optional(),

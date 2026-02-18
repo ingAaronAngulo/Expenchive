@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MoreVertical, Trash2, CreditCard as CreditCardIcon, Pencil, Calendar, Clock, DollarSign } from 'lucide-react';
+import { MoreVertical, Trash2, CreditCard as CreditCardIcon, Pencil, Calendar, Clock, DollarSign, Copy, Check } from 'lucide-react';
 import { deleteCreditCard } from '@/services/credit-cards.service';
 import { formatCurrency } from '@/utils/formatters';
 import { adjustToPreviousBusinessDay } from '@/utils/date';
@@ -97,6 +97,13 @@ export function CreditCardsList({ creditCards }: CreditCardsListProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [editingCard, setEditingCard] = useState<CreditCard | null>(null);
   const [payingCard, setPayingCard] = useState<CreditCard | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const handleCopyClabe = (clabe: string, cardId: string) => {
+    navigator.clipboard.writeText(clabe);
+    setCopiedId(cardId);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
 
   const handleDelete = async (cardId: string) => {
     if (!confirm('Are you sure you want to delete this credit card?')) return;
@@ -160,6 +167,23 @@ export function CreditCardsList({ creditCards }: CreditCardsListProps) {
                 <CreditCardIcon className="h-4 w-4" />
                 <span>Credit Card</span>
               </div>
+              {card.clabe && (
+                <div className="flex items-center gap-2 mb-3 pb-3 border-b">
+                  <span className="text-xs text-muted-foreground">CLABE:</span>
+                  <code className="text-xs bg-secondary px-2 py-1 rounded">{card.clabe}</code>
+                  <button
+                    onClick={() => handleCopyClabe(card.clabe!, card.id)}
+                    className="ml-auto p-1 hover:bg-secondary rounded transition-colors"
+                    title="Copy CLABE"
+                  >
+                    {copiedId === card.id ? (
+                      <Check className="h-3.5 w-3.5 text-green-600" />
+                    ) : (
+                      <Copy className="h-3.5 w-3.5 text-muted-foreground" />
+                    )}
+                  </button>
+                </div>
+              )}
               <div className="space-y-3">
                 <div>
                   <div className="text-2xl font-bold text-red-600">

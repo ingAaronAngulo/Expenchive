@@ -26,6 +26,9 @@ const creditCardSchema = z.object({
     message: 'Current balance must be a positive number',
   }).optional(),
   lastFourDigits: z.string().optional(),
+  clabe: z.string().refine((val) => val === '' || /^\d{18}$/.test(val), {
+    message: 'CLABE must be 18 digits',
+  }).optional(),
   billingCycleDay: z.string().refine((val) => val === '' || (!isNaN(Number(val)) && Number(val) >= 1 && Number(val) <= 31), {
     message: 'Billing cycle day must be between 1 and 31',
   }).optional(),
@@ -61,6 +64,7 @@ export function AddCreditCardDialog({ open, onOpenChange }: AddCreditCardDialogP
       creditLimit: '',
       currentBalance: '',
       lastFourDigits: '',
+      clabe: '',
       billingCycleDay: '',
       paymentDueDay: '',
       interestRate: '',
@@ -79,6 +83,7 @@ export function AddCreditCardDialog({ open, onOpenChange }: AddCreditCardDialogP
         creditLimit: data.creditLimit ? Number(data.creditLimit) : null,
         currentBalance: data.currentBalance ? Number(data.currentBalance) : 0,
         lastFourDigits: data.lastFourDigits || null,
+        clabe: data.clabe || null,
         billingCycleDay: data.billingCycleDay ? Number(data.billingCycleDay) : null,
         paymentDueDay: data.paymentDueDay ? Number(data.paymentDueDay) : null,
         interestRate: data.interestRate ? Number(data.interestRate) : null,
@@ -162,6 +167,22 @@ export function AddCreditCardDialog({ open, onOpenChange }: AddCreditCardDialogP
               placeholder="e.g., 1234"
               {...register('lastFourDigits')}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="clabe">CLABE (Optional)</Label>
+            <Input
+              id="clabe"
+              placeholder="18-digit CLABE number"
+              {...register('clabe')}
+              maxLength={18}
+            />
+            <p className="text-xs text-muted-foreground">
+              18-digit Standardized Banking Cipher Encryption number
+            </p>
+            {errors.clabe && (
+              <p className="text-sm text-red-600">{errors.clabe.message}</p>
+            )}
           </div>
 
           <div className="space-y-2">

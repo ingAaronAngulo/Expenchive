@@ -7,6 +7,7 @@ export interface CreditCard {
   creditLimit: number | null;
   currentBalance: number;
   lastFourDigits: string | null;
+  clabe?: string | null;
   billingCycleDay: number | null; // Day of month when statement closes (1-31)
   paymentDueDay: number | null; // Day of month when payment is due (1-31)
   interestRate: number | null;
@@ -19,6 +20,7 @@ export interface CreateCreditCardData {
   creditLimit?: number | null;
   currentBalance?: number;
   lastFourDigits?: string | null;
+  clabe?: string | null;
   billingCycleDay?: number | null;
   paymentDueDay?: number | null;
   interestRate?: number | null;
@@ -29,6 +31,7 @@ export interface UpdateCreditCardData {
   creditLimit?: number | null;
   currentBalance?: number;
   lastFourDigits?: string | null;
+  clabe?: string | null;
   billingCycleDay?: number | null;
   paymentDueDay?: number | null;
   interestRate?: number | null;

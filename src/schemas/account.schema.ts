@@ -11,6 +11,14 @@ export const createAccountSchema = z.object({
   }),
   balance: z.number().finite('Balance must be a valid number'),
   currency: z.string().length(3, 'Currency must be 3 characters (e.g., USD)').optional(),
+  lastFourDigits: z.string()
+    .regex(/^\d{4}$/, 'Must be exactly 4 digits')
+    .nullable()
+    .optional(),
+  clabe: z.string()
+    .regex(/^\d{18}$/, 'CLABE must be exactly 18 digits')
+    .nullable()
+    .optional(),
   annualReturn: z.number()
     .min(0, 'Annual return cannot be negative')
     .max(100, 'Annual return cannot exceed 100%')
@@ -34,6 +42,8 @@ export const updateAccountSchema = z.object({
   type: z.enum(['checking', 'savings', 'investment', 'cash']).optional(),
   balance: z.number().finite().optional(),
   currency: z.string().length(3).optional(),
+  lastFourDigits: z.string().regex(/^\d{4}$/).nullable().optional(),
+  clabe: z.string().regex(/^\d{18}$/).nullable().optional(),
   annualReturn: z.number().min(0).max(100).nullable().optional(),
 });
 

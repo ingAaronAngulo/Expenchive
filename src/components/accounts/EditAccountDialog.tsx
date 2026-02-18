@@ -31,6 +31,12 @@ const accountSchema = z.object({
   balance: z.string().refine((val) => !isNaN(Number(val)) && Number(val) >= 0, {
     message: 'Balance must be a positive number',
   }),
+  lastFourDigits: z.string().refine((val) => val === '' || /^\d{4}$/.test(val), {
+    message: 'Last four digits must be exactly 4 digits',
+  }).optional(),
+  clabe: z.string().refine((val) => val === '' || /^\d{18}$/.test(val), {
+    message: 'CLABE must be 18 digits',
+  }).optional(),
   annualReturn: z.string().refine((val) => val === '' || (!isNaN(Number(val)) && Number(val) >= -100), {
     message: 'Annual return must be a valid number',
   }).optional(),
@@ -70,6 +76,8 @@ export function EditAccountDialog({
       setValue('name', account.name);
       setValue('type', account.type);
       setValue('balance', account.balance.toString());
+      setValue('lastFourDigits', account.lastFourDigits || '');
+      setValue('clabe', account.clabe || '');
       setValue('annualReturn', account.annualReturn?.toString() || '');
     }
   }, [account, setValue]);
@@ -85,6 +93,8 @@ export function EditAccountDialog({
         name: data.name,
         type: data.type,
         balance: Number(data.balance),
+        lastFourDigits: data.lastFourDigits || null,
+        clabe: data.clabe || null,
         annualReturn: data.annualReturn ? Number(data.annualReturn) : null,
       });
 
@@ -162,6 +172,35 @@ export function EditAccountDialog({
             />
             {errors.balance && (
               <p className="text-sm text-red-600">{errors.balance.message}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="lastFourDigits">Last 4 Digits (Optional)</Label>
+            <Input
+              id="lastFourDigits"
+              maxLength={4}
+              placeholder="e.g., 1234"
+              {...register('lastFourDigits')}
+            />
+            {errors.lastFourDigits && (
+              <p className="text-sm text-red-600">{errors.lastFourDigits.message}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="clabe">CLABE (Optional)</Label>
+            <Input
+              id="clabe"
+              placeholder="18-digit CLABE number"
+              {...register('clabe')}
+              maxLength={18}
+            />
+            <p className="text-xs text-muted-foreground">
+              18-digit Standardized Banking Cipher Encryption number
+            </p>
+            {errors.clabe && (
+              <p className="text-sm text-red-600">{errors.clabe.message}</p>
             )}
           </div>
 

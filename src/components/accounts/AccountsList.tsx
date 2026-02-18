@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MoreVertical, Edit, Trash2, Wallet, Plus } from 'lucide-react';
+import { MoreVertical, Edit, Trash2, Wallet, Plus, Copy, Check } from 'lucide-react';
 import { deleteAccount } from '@/services/accounts.service';
 import { formatCurrency, formatAccountType } from '@/utils/formatters';
 import type { Account } from '@/types';
@@ -22,6 +22,13 @@ export function AccountsList({ accounts }: AccountsListProps) {
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
   const [addBalanceAccount, setAddBalanceAccount] = useState<Account | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const handleCopyClabe = (clabe: string, accountId: string) => {
+    navigator.clipboard.writeText(clabe);
+    setCopiedId(accountId);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
 
   const calculateDailyReturn = (balance: number, annualReturn: number | null | undefined) => {
     if (!annualReturn || annualReturn === 0) return null;
@@ -60,6 +67,9 @@ export function AccountsList({ accounts }: AccountsListProps) {
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 {account.name}
+                {account.lastFourDigits && (
+                  <span className="text-muted-foreground ml-2">••{account.lastFourDigits}</span>
+                )}
               </CardTitle>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -96,6 +106,23 @@ export function AccountsList({ accounts }: AccountsListProps) {
                 <Wallet className="h-4 w-4" />
                 <span>{formatAccountType(account.type)}</span>
               </div>
+              {account.clabe && (
+                <div className="flex items-center gap-2 mb-3 pb-3 border-b">
+                  <span className="text-xs text-muted-foreground">CLABE:</span>
+                  <code className="text-xs bg-secondary px-2 py-1 rounded">{account.clabe}</code>
+                  <button
+                    onClick={() => handleCopyClabe(account.clabe!, account.id)}
+                    className="ml-auto p-1 hover:bg-secondary rounded transition-colors"
+                    title="Copy CLABE"
+                  >
+                    {copiedId === account.id ? (
+                      <Check className="h-3.5 w-3.5 text-green-600" />
+                    ) : (
+                      <Copy className="h-3.5 w-3.5 text-muted-foreground" />
+                    )}
+                  </button>
+                </div>
+              )}
               <div className="space-y-2">
                 <div className="text-2xl font-bold">
                   {formatCurrency(account.balance, account.currency)}

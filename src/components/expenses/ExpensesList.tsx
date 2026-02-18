@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { MoreVertical, Trash2, CreditCard, Wallet, Pencil } from 'lucide-react';
+import { MoreVertical, Trash2, CreditCard as CreditCardIcon, Wallet, Pencil } from 'lucide-react';
 import { deleteExpense } from '@/services/expenses.service';
 import { formatCurrency, formatDate } from '@/utils/formatters';
-import type { Expense } from '@/types';
+import type { Expense, Account, CreditCard } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -16,11 +16,24 @@ import { EditExpenseDialog } from './EditExpenseDialog';
 interface ExpensesListProps {
   expenses: Expense[];
   onExpenseChange?: () => void;
+  accounts?: Account[];
+  creditCards?: CreditCard[];
 }
 
-export function ExpensesList({ expenses, onExpenseChange }: ExpensesListProps) {
+export function ExpensesList({ expenses, onExpenseChange, accounts = [], creditCards = [] }: ExpensesListProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+
+  const getPaymentSourceName = (expense: Expense) => {
+    if (expense.paymentType === 'debit' && expense.accountId) {
+      const account = accounts.find(a => a.id === expense.accountId);
+      return account ? `🏦 ${account.name}` : null;
+    } else if (expense.paymentType === 'credit' && expense.creditCardId) {
+      const card = creditCards.find(c => c.id === expense.creditCardId);
+      return card ? `💳 ${card.name}` : null;
+    }
+    return null;
+  };
 
   const handleDelete = async (expenseId: string) => {
     if (!confirm('Are you sure you want to delete this expense?')) return;
@@ -54,7 +67,7 @@ export function ExpensesList({ expenses, onExpenseChange }: ExpensesListProps) {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
                     {expense.paymentType === 'credit' ? (
-                      <CreditCard className="h-4 w-4 text-muted-foreground" />
+                      <CreditCardIcon className="h-4 w-4 text-muted-foreground" />
                     ) : (
                       <Wallet className="h-4 w-4 text-muted-foreground" />
                     )}
@@ -65,6 +78,9 @@ export function ExpensesList({ expenses, onExpenseChange }: ExpensesListProps) {
                   </div>
                   <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 mt-1 text-sm text-muted-foreground">
                     <span>{formatDate(expense.date)}</span>
+                    {getPaymentSourceName(expense) && (
+                      <span className="text-xs text-foreground">{getPaymentSourceName(expense)}</span>
+                    )}
                     {expense.isInstallment && (
                       <span className="text-xs">
                         Installment: {expense.installmentMonthsPaid}/{expense.installmentMonths} months

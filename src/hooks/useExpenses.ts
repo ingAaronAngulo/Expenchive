@@ -18,7 +18,12 @@ import type { Expense } from '@/types';
 
 const PAGE_SIZE = 10;
 
-export function useExpenses() {
+export interface ExpenseFilter {
+  type: 'account' | 'creditCard';
+  id: string;
+}
+
+export function useExpenses(filter?: ExpenseFilter) {
   const { user } = useAuth();
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,30 +50,40 @@ export function useExpenses() {
     setError(null);
 
     try {
-      let q = query(
-        collection(db, 'expenses'),
-        where('userId', '==', user.uid),
-        orderBy('date', 'desc'),
-        limit(PAGE_SIZE + 1) // Fetch one extra to check if there's a next page
-      );
+      const buildQuery = () => {
+        const filterField = filter?.type === 'account' ? 'accountId' : 'creditCardId';
+        const filterValue = filter?.id;
 
-      if (direction === 'next' && cursorDoc) {
-        q = query(
-          collection(db, 'expenses'),
+        const baseConstraints: any[] = [
           where('userId', '==', user.uid),
-          orderBy('date', 'desc'),
-          startAfter(cursorDoc),
-          limit(PAGE_SIZE + 1)
-        );
-      } else if (direction === 'prev' && cursorDoc) {
-        q = query(
-          collection(db, 'expenses'),
-          where('userId', '==', user.uid),
-          orderBy('date', 'desc'),
-          endBefore(cursorDoc),
-          limitToLast(PAGE_SIZE + 1)
-        );
-      }
+          ...(filter ? [where(filterField, '==', filterValue)] : []),
+          orderBy('date', 'desc')
+        ];
+
+        if (direction === 'next' && cursorDoc) {
+          return query(
+            collection(db, 'expenses'),
+            ...baseConstraints,
+            startAfter(cursorDoc),
+            limit(PAGE_SIZE + 1)
+          );
+        } else if (direction === 'prev' && cursorDoc) {
+          return query(
+            collection(db, 'expenses'),
+            ...baseConstraints,
+            endBefore(cursorDoc),
+            limitToLast(PAGE_SIZE + 1)
+          );
+        } else {
+          return query(
+            collection(db, 'expenses'),
+            ...baseConstraints,
+            limit(PAGE_SIZE + 1)
+          );
+        }
+      };
+
+      const q = buildQuery();
 
       const querySnapshot = await getDocs(q);
       const docs = querySnapshot.docs;
@@ -114,7 +129,7 @@ export function useExpenses() {
       setError('Failed to load expenses');
       setLoading(false);
     }
-  }, [user, currentPage]);
+  }, [user, filter]);
 
   const nextPage = useCallback(() => {
     if (lastDoc && hasNextPage) {
@@ -129,12 +144,19 @@ export function useExpenses() {
   }, [firstDoc, hasPrevPage, fetchExpenses]);
 
   const resetPagination = useCallback(() => {
+    setCurrentPage(1);
+    setFirstDoc(null);
+    setLastDoc(null);
     fetchExpenses('first');
   }, [fetchExpenses]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
+    setCurrentPage(1);
+    setFirstDoc(null);
+    setLastDoc(null);
     fetchExpenses('first');
-  }, [user]);
+  }, [user, filter]);
 
   return {
     expenses,

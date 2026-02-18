@@ -1,7 +1,16 @@
 import { useState } from 'react';
-import { Plus, Receipt, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useExpenses } from '@/hooks/useExpenses';
+import { Plus, Receipt, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { useExpenses, type ExpenseFilter } from '@/hooks/useExpenses';
+import { useAccounts } from '@/hooks/useAccounts';
+import { useCreditCards } from '@/hooks/useCreditCards';
 import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { ExpensesList } from '@/components/expenses/ExpensesList';
 import { AddExpenseDialog } from '@/components/expenses/AddExpenseDialog';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
@@ -9,7 +18,10 @@ import { ErrorMessage } from '@/components/common/ErrorMessage';
 import { EmptyState } from '@/components/common/EmptyState';
 
 export function Expenses() {
-  const { expenses, loading, error, pagination } = useExpenses();
+  const [filter, setFilter] = useState<ExpenseFilter | undefined>();
+  const { expenses, loading, error, pagination } = useExpenses(filter);
+  const { accounts } = useAccounts();
+  const { creditCards } = useCreditCards();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
   const handleDialogClose = (open: boolean) => {
@@ -18,6 +30,22 @@ export function Expenses() {
     if (!open) {
       pagination.resetPagination();
     }
+  };
+
+  const handleFilterChange = (value: string) => {
+    if (value === 'all') {
+      setFilter(undefined);
+    } else if (value.startsWith('account:')) {
+      const id = value.substring('account:'.length);
+      setFilter({ type: 'account', id });
+    } else if (value.startsWith('card:')) {
+      const id = value.substring('card:'.length);
+      setFilter({ type: 'creditCard', id });
+    }
+  };
+
+  const handleClearFilter = () => {
+    setFilter(undefined);
   };
 
   if (loading && pagination.currentPage === 1) {
@@ -43,6 +71,41 @@ export function Expenses() {
         </Button>
       </div>
 
+      {/* Filter UI */}
+      <div className="flex items-center gap-2">
+        <Select value={filter ? (filter.type === 'account' ? `account:${filter.id}` : `card:${filter.id}`) : 'all'} onValueChange={handleFilterChange}>
+          <SelectTrigger className="w-full sm:w-64">
+            <SelectValue placeholder="Filter by payment source..." />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Expenses</SelectItem>
+            {accounts.length > 0 && (
+              <>
+                {accounts.map((account) => (
+                  <SelectItem key={account.id} value={`account:${account.id}`}>
+                    🏦 {account.name}
+                  </SelectItem>
+                ))}
+              </>
+            )}
+            {creditCards.length > 0 && (
+              <>
+                {creditCards.map((card) => (
+                  <SelectItem key={card.id} value={`card:${card.id}`}>
+                    💳 {card.name}
+                  </SelectItem>
+                ))}
+              </>
+            )}
+          </SelectContent>
+        </Select>
+        {filter && (
+          <Button variant="ghost" size="sm" onClick={handleClearFilter}>
+            <X className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
+
       {error && <ErrorMessage message={error} />}
 
       {!error && expenses.length === 0 && pagination.currentPage === 1 ? (
@@ -63,6 +126,8 @@ export function Expenses() {
             <ExpensesList
               expenses={expenses}
               onExpenseChange={pagination.resetPagination}
+              accounts={accounts}
+              creditCards={creditCards}
             />
           )}
 

@@ -9,6 +9,8 @@ export interface Account {
   type: AccountType;
   balance: number;
   currency: string;
+  lastFourDigits?: string | null;
+  clabe?: string | null;
   annualReturn?: number | null;
   createdAt: Timestamp;
   updatedAt: Timestamp;
@@ -19,6 +21,8 @@ export interface CreateAccountData {
   type: AccountType;
   balance: number;
   currency: string;
+  lastFourDigits?: string | null;
+  clabe?: string | null;
   annualReturn?: number | null;
 }
 
@@ -27,5 +31,7 @@ export interface UpdateAccountData {
   type?: AccountType;
   balance?: number;
   currency?: string;
+  lastFourDigits?: string | null;
+  clabe?: string | null;
   annualReturn?: number | null;
 }
