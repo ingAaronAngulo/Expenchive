@@ -1,4 +1,4 @@
-import type { Account, Expense, Investment, CreditCard } from '@/types';
+import type { Account, Expense, Investment, CreditCard, Loan } from '@/types';
 
 /**
  * Calculate total money from accounts and investments
@@ -113,6 +113,25 @@ export function calculateRemainingDebt(
 ): number {
   const remaining = amount - monthlyPayment * monthsPaid;
   return Math.max(0, remaining);
+}
+
+/**
+ * Calculate loans summary for dashboard-included loans
+ */
+export interface LoansSummary {
+  totalLent: number;
+  totalBorrowed: number;
+}
+
+export function calculateLoansSummary(loans: Loan[]): LoansSummary {
+  const dashboardLoans = loans.filter((l) => l.includeInDashboard && !l.isPaid);
+  const totalLent = dashboardLoans
+    .filter((l) => l.direction === 'lent')
+    .reduce((s, l) => s + l.remainingAmount, 0);
+  const totalBorrowed = dashboardLoans
+    .filter((l) => l.direction === 'borrowed')
+    .reduce((s, l) => s + l.remainingAmount, 0);
+  return { totalLent, totalBorrowed };
 }
 
 /**

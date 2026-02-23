@@ -6,7 +6,9 @@ import {
   TrendingUp,
   Wallet,
   Settings,
-  X
+  X,
+  HandCoins,
+  Camera,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -16,6 +18,8 @@ const navigation = [
   { name: 'Credit Cards', href: '/credit-cards', icon: CreditCard },
   { name: 'Investments', href: '/investments', icon: TrendingUp },
   { name: 'Accounts', href: '/accounts', icon: Wallet },
+  { name: 'Loans', href: '/loans', icon: HandCoins },
+  { name: 'Snapshots', href: '/snapshots', icon: Camera },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 

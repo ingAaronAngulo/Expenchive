@@ -3,11 +3,12 @@ import { useAccounts } from './useAccounts';
 import { useExpenses } from './useExpenses';
 import { useInvestments } from './useInvestments';
 import { useCreditCards } from './useCreditCards';
+import { useLoans } from './useLoans';
 import {
   calculateTotalMoney,
   calculateTotalDebt,
-  calculateNetWorth,
   calculateCategoryBreakdown,
+  calculateLoansSummary,
 } from '@/utils/calculations';
 
 export function useFinancialSummary() {
@@ -15,14 +16,18 @@ export function useFinancialSummary() {
   const { expenses, loading: expensesLoading } = useExpenses();
   const { investments, loading: investmentsLoading } = useInvestments();
   const { creditCards, loading: creditCardsLoading } = useCreditCards();
+  const { loans, loading: loansLoading } = useLoans();
 
-  const loading = accountsLoading || expensesLoading || investmentsLoading || creditCardsLoading;
+  const loading = accountsLoading || expensesLoading || investmentsLoading || creditCardsLoading || loansLoading;
 
   const summary = useMemo(() => {
-    const totalMoney = calculateTotalMoney(accounts, investments);
-    const totalDebt = calculateTotalDebt(creditCards);
-    const netWorth = calculateNetWorth(accounts, investments, creditCards);
+    const loansSummary = calculateLoansSummary(loans);
+    const totalMoney = calculateTotalMoney(accounts, investments) + loansSummary.totalLent;
+    const totalDebt = calculateTotalDebt(creditCards) + loansSummary.totalBorrowed;
+    const netWorth = totalMoney - totalDebt;
     const categoryBreakdown = calculateCategoryBreakdown(expenses);
+
+    const hasLoansDashboard = loans.some((l) => l.includeInDashboard && !l.isPaid);
 
     return {
       totalMoney,
@@ -32,8 +37,10 @@ export function useFinancialSummary() {
       totalAccounts: accounts.length,
       totalInvestments: investments.length,
       totalExpenses: expenses.length,
+      loansSummary,
+      hasLoansDashboard,
     };
-  }, [accounts, expenses, investments, creditCards]);
+  }, [accounts, expenses, investments, creditCards, loans]);
 
   return { summary, loading };
 }

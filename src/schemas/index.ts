@@ -8,3 +8,4 @@ export * from './account.schema';
 export * from './credit-card.schema';
 export * from './investment.schema';
 export * from './recurring-expense.schema';
+export * from './loan.schema';

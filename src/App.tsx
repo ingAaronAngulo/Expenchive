@@ -9,6 +9,8 @@ import { CreditCards } from './pages/CreditCards';
 import { Investments } from './pages/Investments';
 import { Accounts } from './pages/Accounts';
 import { Settings } from './pages/Settings';
+import { Loans } from './pages/Loans';
+import { Snapshots } from './pages/Snapshots';
 
 function App() {
   return (
@@ -29,6 +31,8 @@ function App() {
           <Route path="credit-cards" element={<CreditCards />} />
           <Route path="investments" element={<Investments />} />
           <Route path="accounts" element={<Accounts />} />
+          <Route path="loans" element={<Loans />} />
+          <Route path="snapshots" element={<Snapshots />} />
           <Route path="settings" element={<Settings />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
