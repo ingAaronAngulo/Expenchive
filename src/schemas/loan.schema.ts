@@ -7,6 +7,10 @@ export const createLoanSchema = z.object({
   currency: z.string().min(1),
   accountId: z.string().min(1, 'Account is required'),
   description: z.string().nullable().optional(),
+  clabe: z.string()
+    .regex(/^\d{18}$/, 'CLABE must be exactly 18 digits')
+    .nullable()
+    .optional(),
   date: z.date(),
   dueDate: z.date().nullable().optional(),
   includeInDashboard: z.boolean(),

@@ -12,6 +12,7 @@ export interface Loan {
   currency: string;
   accountId: string;
   description: string | null;
+  clabe: string | null;
   date: Timestamp;
   dueDate: Timestamp | null;
   isPaid: boolean;
@@ -37,6 +38,17 @@ export interface CreateLoanData {
   currency: string;
   accountId: string;
   description?: string | null;
+  clabe?: string | null;
+  date: Date;
+  dueDate?: Date | null;
+  includeInDashboard: boolean;
+}
+
+export interface UpdateLoanData {
+  personName: string;
+  amount: number;
+  description?: string | null;
+  clabe?: string | null;
   date: Date;
   dueDate?: Date | null;
   includeInDashboard: boolean;

@@ -7,7 +7,7 @@ import {
   Timestamp,
 } from 'firebase/firestore';
 import { db } from '@/config/firebase';
-import type { CreateLoanData, RecordPaymentData } from '@/types';
+import type { CreateLoanData, RecordPaymentData, UpdateLoanData } from '@/types';
 import { createLoanSchema, recordPaymentSchema } from '@/schemas';
 
 const LOANS_COLLECTION = 'loans';
@@ -43,6 +43,7 @@ export async function createLoan(userId: string, data: CreateLoanData): Promise<
       currency: validated.currency,
       accountId: validated.accountId,
       description: validated.description ?? null,
+      clabe: validated.clabe ?? null,
       date: Timestamp.fromDate(validated.date),
       dueDate: validated.dueDate ? Timestamp.fromDate(validated.dueDate) : null,
       isPaid: false,
@@ -110,6 +111,57 @@ export async function recordPayment(
     });
 
     transaction.update(accountRef, { balance: newBalance, updatedAt: serverTimestamp() });
+  });
+}
+
+export async function updateLoan(loanId: string, data: UpdateLoanData): Promise<void> {
+  await runTransaction(db, async (transaction) => {
+    const loanRef = doc(db, LOANS_COLLECTION, loanId);
+    const loanSnap = await transaction.get(loanRef);
+
+    if (!loanSnap.exists()) throw new Error('Loan not found');
+
+    const loanData = loanSnap.data();
+    const amountDiff = data.amount - loanData.amount;
+
+    if (amountDiff !== 0) {
+      const accountRef = doc(db, ACCOUNTS_COLLECTION, loanData.accountId);
+      const accountSnap = await transaction.get(accountRef);
+
+      if (!accountSnap.exists()) throw new Error('Account not found');
+
+      const currentBalance = accountSnap.data().balance as number;
+      const newBalance =
+        loanData.direction === 'lent'
+          ? currentBalance - amountDiff
+          : currentBalance + amountDiff;
+
+      const newRemainingAmount = Math.max(0, loanData.remainingAmount + amountDiff);
+
+      transaction.update(accountRef, { balance: newBalance, updatedAt: serverTimestamp() });
+      transaction.update(loanRef, {
+        personName: data.personName,
+        amount: data.amount,
+        remainingAmount: newRemainingAmount,
+        isPaid: newRemainingAmount <= 0,
+        description: data.description ?? null,
+        clabe: data.clabe ?? null,
+        date: Timestamp.fromDate(data.date),
+        dueDate: data.dueDate ? Timestamp.fromDate(data.dueDate) : null,
+        includeInDashboard: data.includeInDashboard,
+        updatedAt: serverTimestamp(),
+      });
+    } else {
+      transaction.update(loanRef, {
+        personName: data.personName,
+        description: data.description ?? null,
+        clabe: data.clabe ?? null,
+        date: Timestamp.fromDate(data.date),
+        dueDate: data.dueDate ? Timestamp.fromDate(data.dueDate) : null,
+        includeInDashboard: data.includeInDashboard,
+        updatedAt: serverTimestamp(),
+      });
+    }
   });
 }
 

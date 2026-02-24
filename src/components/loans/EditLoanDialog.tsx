@@ -1,10 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useAuth } from '@/hooks/useAuth';
-import { useAccounts } from '@/hooks/useAccounts';
-import { createLoan } from '@/services/loans.service';
+import { updateLoan } from '@/services/loans.service';
+import type { Loan } from '@/types';
 import {
   Dialog,
   DialogContent,
@@ -19,13 +18,11 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { ErrorMessage } from '@/components/common/ErrorMessage';
 
-const loanFormSchema = z.object({
-  direction: z.enum(['lent', 'borrowed']),
+const editLoanFormSchema = z.object({
   personName: z.string().min(1, 'Person name is required'),
   amount: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
     message: 'Amount must be a positive number',
   }),
-  accountId: z.string().min(1, 'Account is required'),
   description: z.string().optional(),
   clabe: z
     .string()
@@ -37,16 +34,15 @@ const loanFormSchema = z.object({
   includeInDashboard: z.boolean(),
 });
 
-type LoanFormData = z.infer<typeof loanFormSchema>;
+type EditLoanFormData = z.infer<typeof editLoanFormSchema>;
 
-interface AddLoanDialogProps {
+interface EditLoanDialogProps {
+  loan: Loan | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function AddLoanDialog({ open, onOpenChange }: AddLoanDialogProps) {
-  const { user } = useAuth();
-  const { accounts } = useAccounts();
+export function EditLoanDialog({ loan, open, onOpenChange }: EditLoanDialogProps) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -57,37 +53,37 @@ export function AddLoanDialog({ open, onOpenChange }: AddLoanDialogProps) {
     reset,
     watch,
     setValue,
-  } = useForm<LoanFormData>({
-    resolver: zodResolver(loanFormSchema),
-    defaultValues: {
-      direction: 'lent',
-      personName: '',
-      amount: '',
-      accountId: '',
-      description: '',
-      clabe: '',
-      date: new Date().toISOString().split('T')[0],
-      dueDate: '',
-      includeInDashboard: true,
-    },
+  } = useForm<EditLoanFormData>({
+    resolver: zodResolver(editLoanFormSchema),
   });
 
   const includeInDashboard = watch('includeInDashboard');
-  const direction = watch('direction');
 
-  const onSubmit = async (data: LoanFormData) => {
-    if (!user) return;
+  useEffect(() => {
+    if (loan && open) {
+      reset({
+        personName: loan.personName,
+        amount: String(loan.amount),
+        description: loan.description ?? '',
+        clabe: loan.clabe ?? '',
+        date: loan.date.toDate().toISOString().split('T')[0],
+        dueDate: loan.dueDate ? loan.dueDate.toDate().toISOString().split('T')[0] : '',
+        includeInDashboard: loan.includeInDashboard,
+      });
+      setError(null);
+    }
+  }, [loan, open, reset]);
+
+  const onSubmit = async (data: EditLoanFormData) => {
+    if (!loan) return;
 
     try {
       setError(null);
       setLoading(true);
 
-      await createLoan(user.uid, {
-        direction: data.direction,
+      await updateLoan(loan.id, {
         personName: data.personName,
         amount: Number(data.amount),
-        currency: accounts.find((a) => a.id === data.accountId)?.currency ?? 'USD',
-        accountId: data.accountId,
         description: data.description || null,
         clabe: data.clabe || null,
         date: new Date(data.date),
@@ -95,10 +91,9 @@ export function AddLoanDialog({ open, onOpenChange }: AddLoanDialogProps) {
         includeInDashboard: data.includeInDashboard,
       });
 
-      reset();
       onOpenChange(false);
     } catch (err: any) {
-      setError(err.message || 'Failed to create loan');
+      setError(err.message || 'Failed to update loan');
     } finally {
       setLoading(false);
     }
@@ -106,7 +101,6 @@ export function AddLoanDialog({ open, onOpenChange }: AddLoanDialogProps) {
 
   const handleOpenChange = (newOpen: boolean) => {
     if (!newOpen) {
-      reset();
       setError(null);
     }
     onOpenChange(newOpen);
@@ -116,9 +110,9 @@ export function AddLoanDialog({ open, onOpenChange }: AddLoanDialogProps) {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add Loan</DialogTitle>
+          <DialogTitle>Edit Loan</DialogTitle>
           <DialogDescription>
-            Track money you lent to others or borrowed from others.
+            Update the details of this loan.
           </DialogDescription>
         </DialogHeader>
 
@@ -126,30 +120,8 @@ export function AddLoanDialog({ open, onOpenChange }: AddLoanDialogProps) {
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <Label>Direction</Label>
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant={direction === 'lent' ? 'default' : 'outline'}
-                className="flex-1"
-                onClick={() => setValue('direction', 'lent')}
-              >
-                I Lent Money
-              </Button>
-              <Button
-                type="button"
-                variant={direction === 'borrowed' ? 'default' : 'outline'}
-                className="flex-1"
-                onClick={() => setValue('direction', 'borrowed')}
-              >
-                I Borrowed Money
-              </Button>
-            </div>
-          </div>
-
-          <div className="space-y-2">
             <Label htmlFor="personName">
-              {direction === 'lent' ? 'Borrower Name' : 'Lender Name'}
+              {loan?.direction === 'lent' ? 'Borrower Name' : 'Lender Name'}
             </Label>
             <Input
               id="personName"
@@ -172,25 +144,6 @@ export function AddLoanDialog({ open, onOpenChange }: AddLoanDialogProps) {
             />
             {errors.amount && (
               <p className="text-sm text-red-600">{errors.amount.message}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="accountId">Account</Label>
-            <select
-              id="accountId"
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              {...register('accountId')}
-            >
-              <option value="">Select account</option>
-              {accounts.map((account) => (
-                <option key={account.id} value={account.id}>
-                  {account.name}
-                </option>
-              ))}
-            </select>
-            {errors.accountId && (
-              <p className="text-sm text-red-600">{errors.accountId.message}</p>
             )}
           </div>
 
@@ -233,7 +186,7 @@ export function AddLoanDialog({ open, onOpenChange }: AddLoanDialogProps) {
             <div>
               <Label htmlFor="includeInDashboard">Include in Dashboard</Label>
               <p className="text-xs text-muted-foreground">
-                {direction === 'lent'
+                {loan?.direction === 'lent'
                   ? 'Count lent money as an asset'
                   : 'Count borrowed money as debt'}
               </p>
@@ -255,7 +208,7 @@ export function AddLoanDialog({ open, onOpenChange }: AddLoanDialogProps) {
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? 'Adding...' : 'Add Loan'}
+              {loading ? 'Saving...' : 'Save Changes'}
             </Button>
           </DialogFooter>
         </form>

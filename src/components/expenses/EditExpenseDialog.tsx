@@ -102,7 +102,7 @@ export function EditExpenseDialog({ open, onOpenChange, expense }: EditExpenseDi
         name: data.name,
         amount: Number(data.amount),
         category: data.category,
-        date: new Date(data.date),
+        date: new Date(data.date.replace(/-/g, '/')),
         paymentType: data.paymentType,
         accountId: data.paymentType === 'debit' ? data.accountId : null,
         creditCardId: data.paymentType === 'credit' ? data.creditCardId : null,

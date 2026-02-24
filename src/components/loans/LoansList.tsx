@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MoreVertical, Trash2, CreditCard, CheckCircle2 } from 'lucide-react';
+import { MoreVertical, Trash2, CreditCard, CheckCircle2, Pencil } from 'lucide-react';
 import { deleteLoan, toggleLoanDashboard } from '@/services/loans.service';
 import { formatCurrency, formatDate } from '@/utils/formatters';
 import type { Loan } from '@/types';
@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { RecordPaymentDialog } from './RecordPaymentDialog';
+import { EditLoanDialog } from './EditLoanDialog';
 
 interface LoansListProps {
   loans: Loan[];
@@ -23,6 +24,8 @@ export function LoansList({ loans }: LoansListProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null);
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+  const [editingLoan, setEditingLoan] = useState<Loan | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   const handleDelete = async (loan: Loan) => {
     if (!confirm(`Are you sure you want to delete this loan with ${loan.personName}?`)) return;
@@ -49,6 +52,11 @@ export function LoansList({ loans }: LoansListProps) {
   const handleRecordPayment = (loan: Loan) => {
     setSelectedLoan(loan);
     setIsPaymentDialogOpen(true);
+  };
+
+  const handleEdit = (loan: Loan) => {
+    setEditingLoan(loan);
+    setIsEditDialogOpen(true);
   };
 
   return (
@@ -87,6 +95,10 @@ export function LoansList({ loans }: LoansListProps) {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => handleEdit(loan)}>
+                      <Pencil className="mr-2 h-4 w-4" />
+                      Edit
+                    </DropdownMenuItem>
                     {!loan.isPaid && (
                       <DropdownMenuItem onClick={() => handleRecordPayment(loan)}>
                         <CreditCard className="mr-2 h-4 w-4" />
@@ -133,6 +145,7 @@ export function LoansList({ loans }: LoansListProps) {
                   <div>Date: {formatDate(loan.date)}</div>
                   {loan.dueDate && <div>Due: {formatDate(loan.dueDate)}</div>}
                   {loan.description && <div>{loan.description}</div>}
+                  {loan.clabe && <div>CLABE: {loan.clabe}</div>}
                 </div>
 
                 <div className="flex items-center justify-between pt-1 border-t">
@@ -154,6 +167,15 @@ export function LoansList({ loans }: LoansListProps) {
         onOpenChange={(open) => {
           setIsPaymentDialogOpen(open);
           if (!open) setSelectedLoan(null);
+        }}
+      />
+
+      <EditLoanDialog
+        loan={editingLoan}
+        open={isEditDialogOpen}
+        onOpenChange={(open) => {
+          setIsEditDialogOpen(open);
+          if (!open) setEditingLoan(null);
         }}
       />
     </>
