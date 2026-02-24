@@ -1,75 +1,138 @@
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import type { CategoryBreakdown } from '@/utils/calculations';
 import { formatCurrency } from '@/utils/formatters';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface CategoryBreakdownChartProps {
   data: CategoryBreakdown[];
 }
 
 const COLORS = [
-  '#3b82f6', // blue
-  '#10b981', // green
-  '#f59e0b', // amber
-  '#ef4444', // red
-  '#8b5cf6', // purple
-  '#ec4899', // pink
-  '#06b6d4', // cyan
-  '#f97316', // orange
-  '#14b8a6', // teal
-  '#6366f1', // indigo
+  '#c9a227',
+  '#4ade80',
+  '#60a5fa',
+  '#f87171',
+  '#a78bfa',
+  '#34d399',
+  '#fb923c',
+  '#f472b6',
+  '#22d3ee',
+  '#818cf8',
 ];
+
+function CustomTooltip({ active, payload }: { active?: boolean; payload?: Array<{ name: string; value: number }> }) {
+  if (active && payload && payload.length) {
+    return (
+      <div
+        style={{
+          background: '#0b1422',
+          border: '1px solid #1a2338',
+          borderRadius: '8px',
+          padding: '10px 14px',
+        }}
+      >
+        <p
+          className="text-xs uppercase tracking-wider mb-1"
+          style={{ color: '#3a4f6e', fontFamily: "'Instrument Sans', sans-serif" }}
+        >
+          {payload[0].name}
+        </p>
+        <p
+          style={{ color: '#e8eaf0', fontFamily: "'JetBrains Mono', monospace", fontSize: '14px', fontWeight: 600 }}
+        >
+          {formatCurrency(payload[0].value)}
+        </p>
+      </div>
+    );
+  }
+  return null;
+}
 
 export function CategoryBreakdownChart({ data }: CategoryBreakdownChartProps) {
   if (data.length === 0) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Expenses by Category</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center h-[300px] text-muted-foreground">
-            No expense data available
-          </div>
-        </CardContent>
-      </Card>
+      <div
+        className="rounded-xl p-6 flex flex-col"
+        style={{ background: '#08101c', border: '1px solid #1a2338', minHeight: '320px' }}
+      >
+        <p
+          className="text-xs uppercase tracking-[0.3em] font-medium mb-4"
+          style={{ color: '#3a4f6e', fontFamily: "'Instrument Sans', sans-serif" }}
+        >
+          Expenses by Category
+        </p>
+        <div className="flex-1 flex items-center justify-center">
+          <p className="text-sm" style={{ color: '#3a4f6e' }}>No expense data available</p>
+        </div>
+      </div>
     );
   }
 
   const chartData = data.map((item) => ({
     name: item.category,
     value: item.total,
+    percentage: item.percentage,
   }));
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Expenses by Category</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={300}>
+    <div
+      className="rounded-xl p-6"
+      style={{ background: '#08101c', border: '1px solid #1a2338' }}
+    >
+      <p
+        className="text-xs uppercase tracking-[0.3em] font-medium mb-5"
+        style={{ color: '#3a4f6e', fontFamily: "'Instrument Sans', sans-serif" }}
+      >
+        Expenses by Category
+      </p>
+
+      <div className="flex flex-col gap-4">
+        <ResponsiveContainer width="100%" height={200}>
           <PieChart>
             <Pie
               data={chartData}
               cx="50%"
               cy="50%"
-              labelLine={false}
-              label={({ name, percent }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
-              outerRadius={80}
-              fill="#8884d8"
+              innerRadius={55}
+              outerRadius={85}
+              paddingAngle={2}
               dataKey="value"
             >
               {chartData.map((_entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                <Cell
+                  key={`cell-${index}`}
+                  fill={COLORS[index % COLORS.length]}
+                  stroke="transparent"
+                />
               ))}
             </Pie>
-            <Tooltip
-              formatter={(value) => formatCurrency(Number(value))}
-            />
-            <Legend />
+            <Tooltip content={<CustomTooltip />} />
           </PieChart>
         </ResponsiveContainer>
-      </CardContent>
-    </Card>
+
+        {/* Custom legend */}
+        <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+          {chartData.slice(0, 8).map((item, index) => (
+            <div key={item.name} className="flex items-center gap-2 min-w-0">
+              <div
+                className="w-2 h-2 rounded-full flex-shrink-0"
+                style={{ background: COLORS[index % COLORS.length] }}
+              />
+              <span
+                className="text-xs truncate"
+                style={{ color: '#6b7a99', fontFamily: "'Instrument Sans', sans-serif" }}
+              >
+                {item.name}
+              </span>
+              <span
+                className="text-xs ml-auto flex-shrink-0"
+                style={{ color: '#3a4f6e', fontFamily: "'JetBrains Mono', monospace" }}
+              >
+                {item.percentage.toFixed(0)}%
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }

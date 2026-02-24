@@ -1,6 +1,4 @@
-import { DollarSign, TrendingDown, TrendingUp } from 'lucide-react';
 import { formatCurrency } from '@/utils/formatters';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface FinancialSummaryProps {
   totalMoney: number;
@@ -8,57 +6,110 @@ interface FinancialSummaryProps {
   netWorth: number;
 }
 
-export function FinancialSummary({
-  totalMoney,
-  totalDebt,
-  netWorth,
-}: FinancialSummaryProps) {
+export function FinancialSummary({ totalMoney, totalDebt, netWorth }: FinancialSummaryProps) {
+  const isPositive = netWorth >= 0;
+
   return (
-    <div className="grid gap-4 md:grid-cols-3">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Money</CardTitle>
-          <DollarSign className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-green-600">
-            {formatCurrency(totalMoney)}
-          </div>
-          <p className="text-xs text-muted-foreground mt-1">
-            Accounts + Investments
-          </p>
-        </CardContent>
-      </Card>
+    <div
+      className="relative overflow-hidden rounded-2xl p-8 md:p-10"
+      style={{
+        background: 'linear-gradient(145deg, #060912 0%, #0b1422 60%, #060e1a 100%)',
+        border: '1px solid #1a2338',
+      }}
+    >
+      {/* Subtle grid overlay */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage:
+            'linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px)',
+          backgroundSize: '52px 52px',
+        }}
+      />
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Debt</CardTitle>
-          <TrendingDown className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-red-600">
-            {formatCurrency(totalDebt)}
-          </div>
-          <p className="text-xs text-muted-foreground mt-1">
-            Credit card debt
-          </p>
-        </CardContent>
-      </Card>
+      {/* Glow accent */}
+      <div
+        className="absolute pointer-events-none"
+        style={{
+          top: '-40px',
+          right: '-40px',
+          width: '240px',
+          height: '240px',
+          borderRadius: '50%',
+          background: isPositive
+            ? 'radial-gradient(circle, rgba(201,162,39,0.07) 0%, transparent 70%)'
+            : 'radial-gradient(circle, rgba(224,82,82,0.07) 0%, transparent 70%)',
+        }}
+      />
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Net Worth</CardTitle>
-          <TrendingUp className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className={`text-2xl font-bold ${netWorth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-            {formatCurrency(netWorth)}
+      <div className="relative z-10">
+        {/* Label */}
+        <p
+          className="text-xs uppercase tracking-[0.35em] font-medium"
+          style={{ color: '#3a4f6e', fontFamily: "'Instrument Sans', sans-serif" }}
+        >
+          Net Worth
+        </p>
+
+        {/* Hero number */}
+        <div
+          className="mt-3 mb-6"
+          style={{
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: 'clamp(2.75rem, 7vw, 5rem)',
+            fontWeight: 300,
+            lineHeight: 1,
+            letterSpacing: '-0.02em',
+            color: isPositive ? '#c9a227' : '#e05252',
+          }}
+        >
+          {formatCurrency(netWorth)}
+        </div>
+
+        {/* Divider */}
+        <div style={{ height: '1px', background: '#1a2338' }} />
+
+        {/* Secondary stats */}
+        <div className="mt-5 flex flex-wrap items-start gap-8">
+          <div>
+            <p
+              className="text-xs uppercase tracking-wider mb-1.5"
+              style={{ color: '#3a4f6e', fontFamily: "'Instrument Sans', sans-serif" }}
+            >
+              Assets
+            </p>
+            <p
+              className="text-xl font-semibold"
+              style={{ color: '#4ade80', fontFamily: "'JetBrains Mono', monospace" }}
+            >
+              {formatCurrency(totalMoney)}
+            </p>
+            <p className="text-xs mt-1" style={{ color: '#3a4f6e' }}>
+              Accounts + Investments
+            </p>
           </div>
-          <p className="text-xs text-muted-foreground mt-1">
-            Money - Debt
-          </p>
-        </CardContent>
-      </Card>
+
+          <div style={{ width: '1px', height: '52px', background: '#1a2338', marginTop: '2px' }} />
+
+          <div>
+            <p
+              className="text-xs uppercase tracking-wider mb-1.5"
+              style={{ color: '#3a4f6e', fontFamily: "'Instrument Sans', sans-serif" }}
+            >
+              Liabilities
+            </p>
+            <p
+              className="text-xl font-semibold"
+              style={{ color: '#f87171', fontFamily: "'JetBrains Mono', monospace" }}
+            >
+              {formatCurrency(totalDebt)}
+            </p>
+            <p className="text-xs mt-1" style={{ color: '#3a4f6e' }}>
+              Credit card debt
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

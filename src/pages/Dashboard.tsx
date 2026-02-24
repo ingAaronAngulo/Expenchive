@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Camera } from 'lucide-react';
+import { Camera, Check } from 'lucide-react';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import { useAuth } from '@/hooks/useAuth';
 import { FinancialSummary } from '@/components/dashboard/FinancialSummary';
@@ -7,7 +7,6 @@ import { CategoryBreakdownChart } from '@/components/dashboard/CategoryBreakdown
 import { MoneyVsDebtChart } from '@/components/dashboard/MoneyVsDebtChart';
 import { LoansSummaryCard } from '@/components/dashboard/LoansSummaryCard';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
-import { Button } from '@/components/ui/button';
 import { createSnapshot } from '@/services/snapshots.service';
 
 export function Dashboard() {
@@ -44,51 +43,98 @@ export function Dashboard() {
     );
   }
 
+  const today = new Date().toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-start justify-between gap-4">
+    <div className="space-y-4">
+      {/* Page header */}
+      <div className="flex items-center justify-between py-1">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold">Dashboard</h1>
-          <p className="text-sm md:text-base text-muted-foreground mt-1">
-            Your financial overview at a glance
+          <p
+            className="text-xs uppercase tracking-[0.25em]"
+            style={{ color: 'hsl(var(--muted-foreground))', fontFamily: "'Instrument Sans', sans-serif" }}
+          >
+            {today}
           </p>
+          <h1
+            className="text-2xl font-semibold mt-0.5"
+            style={{ fontFamily: "'Instrument Sans', sans-serif" }}
+          >
+            Dashboard
+          </h1>
         </div>
-        <Button variant="outline" size="sm" onClick={saveSnapshot} disabled={saving || saved}>
-          <Camera className="w-4 h-4 mr-2" />
+
+        <button
+          onClick={saveSnapshot}
+          disabled={saving || saved}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+          style={{
+            background: saved ? 'rgba(74, 222, 128, 0.08)' : 'transparent',
+            border: '1px solid',
+            borderColor: saved ? 'rgba(74, 222, 128, 0.25)' : 'hsl(var(--border))',
+            color: saved ? '#4ade80' : 'hsl(var(--muted-foreground))',
+            cursor: saving || saved ? 'not-allowed' : 'pointer',
+            fontFamily: "'Instrument Sans', sans-serif",
+          }}
+        >
+          {saved ? <Check size={14} /> : <Camera size={14} />}
           {saved ? 'Saved!' : saving ? 'Saving…' : 'Save Snapshot'}
-        </Button>
+        </button>
       </div>
 
-      <div className="space-y-6">
-        <FinancialSummary
+      {/* Hero financial summary */}
+      <FinancialSummary
+        totalMoney={summary.totalMoney}
+        totalDebt={summary.totalDebt}
+        netWorth={summary.netWorth}
+      />
+
+      {/* Loans summary */}
+      {summary.hasLoansDashboard && (
+        <LoansSummaryCard
+          totalLent={summary.loansSummary.totalLent}
+          totalBorrowed={summary.loansSummary.totalBorrowed}
+        />
+      )}
+
+      {/* Charts */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <CategoryBreakdownChart data={summary.categoryBreakdown} />
+        <MoneyVsDebtChart
           totalMoney={summary.totalMoney}
           totalDebt={summary.totalDebt}
           netWorth={summary.netWorth}
         />
-
-        {summary.hasLoansDashboard && (
-          <LoansSummaryCard
-            totalLent={summary.loansSummary.totalLent}
-            totalBorrowed={summary.loansSummary.totalBorrowed}
-          />
-        )}
-
-        <div className="grid gap-4 md:grid-cols-2">
-          <CategoryBreakdownChart data={summary.categoryBreakdown} />
-          <MoneyVsDebtChart
-            totalMoney={summary.totalMoney}
-            totalDebt={summary.totalDebt}
-            netWorth={summary.netWorth}
-          />
-        </div>
-
-        {summary.totalExpenses === 0 && summary.totalAccounts === 0 && (
-          <div className="text-center p-12 text-muted-foreground">
-            <p className="text-lg mb-2">Welcome to Expenchive!</p>
-            <p>Start by adding accounts, expenses, or investments to see your financial dashboard.</p>
-          </div>
-        )}
       </div>
+
+      {/* Empty state */}
+      {summary.totalExpenses === 0 && summary.totalAccounts === 0 && (
+        <div
+          className="text-center p-12 rounded-xl"
+          style={{
+            background: '#08101c',
+            border: '1px solid #1a2338',
+          }}
+        >
+          <p
+            className="text-lg mb-2"
+            style={{ color: '#6b7a99', fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, fontSize: '1.5rem' }}
+          >
+            Welcome to Expenchive
+          </p>
+          <p
+            className="text-sm"
+            style={{ color: '#3a4f6e', fontFamily: "'Instrument Sans', sans-serif" }}
+          >
+            Start by adding accounts, expenses, or investments to see your financial dashboard.
+          </p>
+        </div>
+      )}
     </div>
   );
 }
