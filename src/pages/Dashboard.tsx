@@ -8,12 +8,14 @@ import { MoneyVsDebtChart } from '@/components/dashboard/MoneyVsDebtChart';
 import { LoansSummaryCard } from '@/components/dashboard/LoansSummaryCard';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { createSnapshot } from '@/services/snapshots.service';
+import { useTranslation } from 'react-i18next';
 
 export function Dashboard() {
   const { summary, loading } = useFinancialSummary();
   const { user } = useAuth();
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const { t, i18n } = useTranslation();
 
   async function saveSnapshot() {
     if (!user) return;
@@ -43,7 +45,7 @@ export function Dashboard() {
     );
   }
 
-  const today = new Date().toLocaleDateString('en-US', {
+  const today = new Date().toLocaleDateString(i18n.language, {
     weekday: 'long',
     month: 'long',
     day: 'numeric',
@@ -65,7 +67,7 @@ export function Dashboard() {
             className="text-2xl font-semibold mt-0.5"
             style={{ fontFamily: "'Instrument Sans', sans-serif" }}
           >
-            Dashboard
+            {t('dashboard.title')}
           </h1>
         </div>
 
@@ -83,7 +85,7 @@ export function Dashboard() {
           }}
         >
           {saved ? <Check size={14} /> : <Camera size={14} />}
-          {saved ? 'Saved!' : saving ? 'Saving…' : 'Save Snapshot'}
+          {saved ? t('dashboard.saved') : saving ? t('dashboard.saving') : t('dashboard.saveSnapshot')}
         </button>
       </div>
 
@@ -125,13 +127,13 @@ export function Dashboard() {
             className="text-lg mb-2"
             style={{ color: '#6b7a99', fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, fontSize: '1.5rem' }}
           >
-            Welcome to Expenchive
+            {t('dashboard.welcome')}
           </p>
           <p
             className="text-sm"
             style={{ color: '#3a4f6e', fontFamily: "'Instrument Sans', sans-serif" }}
           >
-            Start by adding accounts, expenses, or investments to see your financial dashboard.
+            {t('dashboard.welcomeDescription')}
           </p>
         </div>
       )}

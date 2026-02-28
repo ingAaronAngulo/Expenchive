@@ -7,10 +7,12 @@ import { AddInvestmentDialog } from '@/components/investments/AddInvestmentDialo
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { ErrorMessage } from '@/components/common/ErrorMessage';
 import { EmptyState } from '@/components/common/EmptyState';
+import { useTranslation } from 'react-i18next';
 
 export function Investments() {
   const { investments, loading, error } = useInvestments();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const { t } = useTranslation();
 
   if (loading) {
     return (
@@ -24,14 +26,14 @@ export function Investments() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold">Investments</h1>
+          <h1 className="text-2xl md:text-3xl font-bold">{t('investments.title')}</h1>
           <p className="text-sm md:text-base text-muted-foreground mt-1">
-            Track your investment portfolio and expected returns
+            {t('investments.description')}
           </p>
         </div>
         <Button onClick={() => setIsAddDialogOpen(true)} className="w-full sm:w-auto">
           <Plus className="mr-2 h-4 w-4" />
-          Add Investment
+          {t('investments.addInvestment')}
         </Button>
       </div>
 
@@ -40,9 +42,9 @@ export function Investments() {
       {!error && investments.length === 0 ? (
         <EmptyState
           icon={TrendingUp}
-          title="No investments yet"
-          description="Add your first investment to start tracking your portfolio growth."
-          actionLabel="Add Investment"
+          title={t('investments.noInvestments')}
+          description={t('investments.noInvestmentsDescription')}
+          actionLabel={t('investments.addInvestment')}
           onAction={() => setIsAddDialogOpen(true)}
         />
       ) : (

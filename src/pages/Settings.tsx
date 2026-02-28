@@ -9,35 +9,37 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { ErrorMessage } from '@/components/common/ErrorMessage';
 import { EmptyState } from '@/components/common/EmptyState';
 import { useAuth } from '@/hooks/useAuth';
+import { useTranslation } from 'react-i18next';
 
 export function Settings() {
   const { user } = useAuth();
   const { recurringExpenses, loading, error } = useRecurringExpenses();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const { t } = useTranslation();
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold">Settings</h1>
+        <h1 className="text-2xl md:text-3xl font-bold">{t('settings.title')}</h1>
         <p className="text-sm md:text-base text-muted-foreground mt-1">
-          Manage your account and recurring expenses
+          {t('settings.description')}
         </p>
       </div>
 
       {/* User Profile Section */}
       <Card>
         <CardHeader>
-          <CardTitle>Profile</CardTitle>
-          <CardDescription>Your account information</CardDescription>
+          <CardTitle>{t('settings.profile')}</CardTitle>
+          <CardDescription>{t('settings.profileDescription')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-2">
           <div>
-            <span className="text-sm font-medium text-muted-foreground">Email:</span>
+            <span className="text-sm font-medium text-muted-foreground">{t('settings.email')}:</span>
             <p className="text-sm">{user?.email}</p>
           </div>
           {user?.displayName && (
             <div>
-              <span className="text-sm font-medium text-muted-foreground">Name:</span>
+              <span className="text-sm font-medium text-muted-foreground">{t('settings.name')}:</span>
               <p className="text-sm">{user.displayName}</p>
             </div>
           )}
@@ -48,14 +50,12 @@ export function Settings() {
       <Card>
         <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <CardTitle>Recurring Expenses</CardTitle>
-            <CardDescription>
-              Expenses that repeat automatically (will be created by Cloud Functions)
-            </CardDescription>
+            <CardTitle>{t('settings.recurringExpenses')}</CardTitle>
+            <CardDescription>{t('settings.recurringExpensesDescription')}</CardDescription>
           </div>
           <Button onClick={() => setIsAddDialogOpen(true)} className="w-full sm:w-auto">
             <Plus className="mr-2 h-4 w-4" />
-            Add Recurring
+            {t('settings.addRecurring')}
           </Button>
         </CardHeader>
         <CardContent>
@@ -68,9 +68,9 @@ export function Settings() {
           ) : recurringExpenses.length === 0 ? (
             <EmptyState
               icon={Repeat}
-              title="No recurring expenses"
-              description="Create recurring expenses like subscriptions, rent, or bills that happen regularly."
-              actionLabel="Add Recurring Expense"
+              title={t('settings.noRecurring')}
+              description={t('settings.noRecurringDescription')}
+              actionLabel={t('settings.addRecurring')}
               onAction={() => setIsAddDialogOpen(true)}
             />
           ) : (
@@ -83,9 +83,7 @@ export function Settings() {
       <Card className="border-primary/20 bg-primary/5">
         <CardContent className="pt-6">
           <p className="text-sm text-foreground">
-            <strong>Note:</strong> Recurring expenses are templates that will be automatically
-            created by Cloud Functions. Once deployed, expenses will be created on their due dates
-            and your account balances or credit card debt will be updated automatically.
+            <strong>{t('common.note')}:</strong> {t('settings.cloudFunctionsNote')}
           </p>
         </CardContent>
       </Card>

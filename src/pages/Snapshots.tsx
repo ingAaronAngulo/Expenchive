@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/utils/formatters';
 import { deleteSnapshot } from '@/services/snapshots.service';
 import type { DashboardSnapshot } from '@/types';
+import { useTranslation } from 'react-i18next';
 
 function SnapshotCard({
   snapshot,
@@ -17,6 +18,7 @@ function SnapshotCard({
 }) {
   const [confirming, setConfirming] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const { t, i18n } = useTranslation();
 
   const date = snapshot.createdAt?.toDate ? snapshot.createdAt.toDate() : new Date();
 
@@ -36,7 +38,7 @@ function SnapshotCard({
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between gap-2">
           <CardTitle className="text-base font-semibold">
-            {date.toLocaleDateString(undefined, {
+            {date.toLocaleDateString(i18n.language, {
               year: 'numeric',
               month: 'long',
               day: 'numeric',
@@ -44,7 +46,7 @@ function SnapshotCard({
           </CardTitle>
           <div className="flex items-center gap-1 shrink-0">
             <span className="text-xs text-muted-foreground">
-              {date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
+              {date.toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit' })}
             </span>
             {confirming ? (
               <>
@@ -55,7 +57,7 @@ function SnapshotCard({
                   onClick={handleDelete}
                   disabled={deleting}
                 >
-                  {deleting ? 'Deleting…' : 'Confirm'}
+                  {deleting ? t('snapshots.deleting') : t('snapshots.confirm')}
                 </Button>
                 <Button
                   variant="ghost"
@@ -64,7 +66,7 @@ function SnapshotCard({
                   onClick={() => setConfirming(false)}
                   disabled={deleting}
                 >
-                  Cancel
+                  {t('snapshots.cancel')}
                 </Button>
               </>
             ) : (
@@ -84,7 +86,7 @@ function SnapshotCard({
         <div className="grid grid-cols-3 gap-3">
           <div className="flex flex-col gap-1">
             <span className="text-xs text-muted-foreground flex items-center gap-1">
-              <TrendingUp className="w-3 h-3" /> Money
+              <TrendingUp className="w-3 h-3" /> {t('financial.totalMoney')}
             </span>
             <span className="font-semibold text-green-600 dark:text-green-400 text-sm">
               {formatCurrency(snapshot.totalMoney)}
@@ -92,7 +94,7 @@ function SnapshotCard({
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-xs text-muted-foreground flex items-center gap-1">
-              <TrendingDown className="w-3 h-3" /> Debt
+              <TrendingDown className="w-3 h-3" /> {t('financial.totalDebt')}
             </span>
             <span className="font-semibold text-red-600 dark:text-red-400 text-sm">
               {formatCurrency(snapshot.totalDebt)}
@@ -100,7 +102,7 @@ function SnapshotCard({
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-xs text-muted-foreground flex items-center gap-1">
-              <DollarSign className="w-3 h-3" /> Net Worth
+              <DollarSign className="w-3 h-3" /> {t('financial.netWorth')}
             </span>
             <span
               className={`font-semibold text-sm ${
@@ -118,13 +120,13 @@ function SnapshotCard({
           <div className="grid grid-cols-2 gap-3 pt-2 border-t border-border">
             {snapshot.totalLent > 0 && (
               <div className="flex flex-col gap-1">
-                <span className="text-xs text-muted-foreground">Lent out</span>
+                <span className="text-xs text-muted-foreground">{t('financial.totalLent')}</span>
                 <span className="text-sm font-medium">{formatCurrency(snapshot.totalLent)}</span>
               </div>
             )}
             {snapshot.totalBorrowed > 0 && (
               <div className="flex flex-col gap-1">
-                <span className="text-xs text-muted-foreground">Borrowed</span>
+                <span className="text-xs text-muted-foreground">{t('financial.totalBorrowed')}</span>
                 <span className="text-sm font-medium">{formatCurrency(snapshot.totalBorrowed)}</span>
               </div>
             )}
@@ -156,9 +158,9 @@ function SnapshotCard({
 
 export function Snapshots() {
   const { snapshots, loading, refresh } = useSnapshots();
+  const { t } = useTranslation();
 
   function handleDeleted(id: string) {
-    // refresh so the list updates without a full reload
     refresh();
     void id;
   }
@@ -174,19 +176,17 @@ export function Snapshots() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold">Snapshots</h1>
+        <h1 className="text-2xl md:text-3xl font-bold">{t('snapshots.title')}</h1>
         <p className="text-sm md:text-base text-muted-foreground mt-1">
-          Historical records of your financial state
+          {t('snapshots.description')}
         </p>
       </div>
 
       {snapshots.length === 0 ? (
         <div className="flex flex-col items-center justify-center p-12 text-center text-muted-foreground border border-dashed rounded-lg">
           <Camera className="w-10 h-10 mb-3 opacity-40" />
-          <p className="text-lg font-medium mb-1">No snapshots yet</p>
-          <p className="text-sm">
-            Use the "Save Snapshot" button on the Dashboard to capture your current financial state.
-          </p>
+          <p className="text-lg font-medium mb-1">{t('snapshots.noSnapshots')}</p>
+          <p className="text-sm">{t('snapshots.noSnapshotsDescription')}</p>
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">

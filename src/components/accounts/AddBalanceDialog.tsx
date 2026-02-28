@@ -16,14 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ErrorMessage } from '@/components/common/ErrorMessage';
-
-const balanceSchema = z.object({
-  amount: z.string().refine((val) => !isNaN(Number(val)) && Number(val) !== 0, {
-    message: 'Amount must be a non-zero number',
-  }),
-});
-
-type BalanceFormData = z.infer<typeof balanceSchema>;
+import { useTranslation } from 'react-i18next';
 
 interface AddBalanceDialogProps {
   open: boolean;
@@ -31,13 +24,18 @@ interface AddBalanceDialogProps {
   account: Account | null;
 }
 
-export function AddBalanceDialog({
-  open,
-  onOpenChange,
-  account,
-}: AddBalanceDialogProps) {
+export function AddBalanceDialog({ open, onOpenChange, account }: AddBalanceDialogProps) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const { t } = useTranslation();
+
+  const balanceSchema = z.object({
+    amount: z.string().refine((val) => !isNaN(Number(val)) && Number(val) !== 0, {
+      message: t('accountDialog.errors.amountNonZero'),
+    }),
+  });
+
+  type BalanceFormData = z.infer<typeof balanceSchema>;
 
   const {
     register,
@@ -50,30 +48,23 @@ export function AddBalanceDialog({
 
   const onSubmit = async (data: BalanceFormData) => {
     if (!account) return;
-
     try {
       setError(null);
       setLoading(true);
-
       const amount = Number(data.amount);
       const newBalance = account.balance + amount;
-
       await updateAccountBalance(account.id, newBalance);
-
       onOpenChange(false);
       reset();
     } catch (err: any) {
-      setError(err.message || 'Failed to update account balance');
+      setError(err.message || t('accountDialog.errors.failedUpdateBalance'));
     } finally {
       setLoading(false);
     }
   };
 
   const handleOpenChange = (newOpen: boolean) => {
-    if (!newOpen) {
-      reset();
-      setError(null);
-    }
+    if (!newOpen) { reset(); setError(null); }
     onOpenChange(newOpen);
   };
 
@@ -81,9 +72,9 @@ export function AddBalanceDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add Balance</DialogTitle>
+          <DialogTitle>{t('accountDialog.addBalanceTitle')}</DialogTitle>
           <DialogDescription>
-            Add or subtract an amount to {account?.name}. Use a negative number to subtract.
+            {t('accountDialog.addBalanceDescription', { name: account?.name })}
           </DialogDescription>
         </DialogHeader>
 
@@ -91,7 +82,7 @@ export function AddBalanceDialog({
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="amount">Amount</Label>
+            <Label htmlFor="amount">{t('form.amount')}</Label>
             <Input
               id="amount"
               type="number"
@@ -100,34 +91,25 @@ export function AddBalanceDialog({
               {...register('amount')}
               autoFocus
             />
-            <p className="text-xs text-muted-foreground">
-              Enter a positive number to add or a negative number to subtract
-            </p>
-            {errors.amount && (
-              <p className="text-sm text-red-600">{errors.amount.message}</p>
-            )}
+            <p className="text-xs text-muted-foreground">{t('form.addPositiveOrNegative')}</p>
+            {errors.amount && <p className="text-sm text-red-600">{errors.amount.message}</p>}
           </div>
 
           {account && (
             <div className="rounded-lg bg-muted p-3 space-y-1">
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Current balance:</span>
+                <span className="text-muted-foreground">{t('accountDialog.currentBalanceLabel')}</span>
                 <span className="font-medium">{account.balance.toFixed(2)} {account.currency}</span>
               </div>
             </div>
           )}
 
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => handleOpenChange(false)}
-              disabled={loading}
-            >
-              Cancel
+            <Button type="button" variant="outline" onClick={() => handleOpenChange(false)} disabled={loading}>
+              {t('common.cancel')}
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? 'Updating...' : 'Update Balance'}
+              {loading ? t('common.updating') : t('accountDialog.updateBalance')}
             </Button>
           </DialogFooter>
         </form>

@@ -11,17 +11,7 @@ import {
   Camera,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-const navigation = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { name: 'Expenses', href: '/expenses', icon: Receipt },
-  { name: 'Credit Cards', href: '/credit-cards', icon: CreditCard },
-  { name: 'Investments', href: '/investments', icon: TrendingUp },
-  { name: 'Accounts', href: '/accounts', icon: Wallet },
-  { name: 'Loans', href: '/loans', icon: HandCoins },
-  { name: 'Snapshots', href: '/snapshots', icon: Camera },
-  { name: 'Settings', href: '/settings', icon: Settings },
-];
+import { useTranslation } from 'react-i18next';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -29,6 +19,19 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
+  const { t } = useTranslation();
+
+  const navigation = [
+    { name: t('nav.dashboard'), href: '/', icon: LayoutDashboard },
+    { name: t('nav.expenses'), href: '/expenses', icon: Receipt },
+    { name: t('nav.creditCards'), href: '/credit-cards', icon: CreditCard },
+    { name: t('nav.investments'), href: '/investments', icon: TrendingUp },
+    { name: t('nav.accounts'), href: '/accounts', icon: Wallet },
+    { name: t('nav.loans'), href: '/loans', icon: HandCoins },
+    { name: t('nav.snapshots'), href: '/snapshots', icon: Camera },
+    { name: t('nav.settings'), href: '/settings', icon: Settings },
+  ];
+
   return (
     <>
       {/* Backdrop for mobile */}
@@ -63,7 +66,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               const Icon = item.icon;
               return (
                 <NavLink
-                  key={item.name}
+                  key={item.href}
                   to={item.href}
                   end={item.href === '/'}
                   onClick={onClose}

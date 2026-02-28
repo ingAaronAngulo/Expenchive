@@ -8,18 +8,20 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-
-const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-});
-
-type LoginFormData = z.infer<typeof loginSchema>;
+import { useTranslation } from 'react-i18next';
 
 export function Login() {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const { t } = useTranslation();
+
+  const loginSchema = z.object({
+    email: z.string().email(t('auth.errors.invalidEmail')),
+    password: z.string().min(6, t('auth.errors.passwordMin')),
+  });
+
+  type LoginFormData = z.infer<typeof loginSchema>;
 
   const {
     register,
@@ -36,7 +38,7 @@ export function Login() {
       await signInWithEmail(data.email, data.password);
       navigate('/');
     } catch (err: any) {
-      setError(err.message || 'Failed to sign in');
+      setError(err.message || t('auth.errors.failedSignIn'));
     } finally {
       setLoading(false);
     }
@@ -49,7 +51,7 @@ export function Login() {
       await signInWithGoogle();
       navigate('/');
     } catch (err: any) {
-      setError(err.message || 'Failed to sign in with Google');
+      setError(err.message || t('auth.errors.failedSignInGoogle'));
     } finally {
       setLoading(false);
     }
@@ -60,7 +62,7 @@ export function Login() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">Expenchive</CardTitle>
-          <CardDescription>Sign in to your account</CardDescription>
+          <CardDescription>{t('auth.signInDescription')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {error && (
@@ -71,7 +73,7 @@ export function Login() {
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t('auth.email')}</Label>
               <Input
                 id="email"
                 type="email"
@@ -84,7 +86,7 @@ export function Login() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{t('auth.password')}</Label>
               <Input
                 id="password"
                 type="password"
@@ -97,7 +99,7 @@ export function Login() {
             </div>
 
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Signing in...' : 'Sign In'}
+              {loading ? t('auth.signingIn') : t('auth.signIn')}
             </Button>
           </form>
 
@@ -107,7 +109,7 @@ export function Login() {
             </div>
             <div className="relative flex justify-center text-xs uppercase">
               <span className="bg-background px-2 text-muted-foreground">
-                Or continue with
+                {t('auth.orContinueWith')}
               </span>
             </div>
           </div>
@@ -119,13 +121,13 @@ export function Login() {
             onClick={handleGoogleSignIn}
             disabled={loading}
           >
-            Sign in with Google
+            {t('auth.signInWithGoogle')}
           </Button>
 
           <div className="text-center text-sm">
-            Don't have an account?{' '}
+            {t('auth.noAccount')}{' '}
             <Link to="/signup" className="text-primary hover:underline">
-              Sign up
+              {t('auth.signUpLink')}
             </Link>
           </div>
         </CardContent>

@@ -1,5 +1,6 @@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { formatCurrency } from '@/utils/formatters';
+import { useTranslation } from 'react-i18next';
 
 interface MoneyVsDebtChartProps {
   totalMoney: number;
@@ -36,10 +37,12 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
 }
 
 export function MoneyVsDebtChart({ totalMoney, totalDebt, netWorth }: MoneyVsDebtChartProps) {
+  const { t } = useTranslation();
+
   const data = [
-    { name: 'Assets', value: totalMoney, color: '#4ade80' },
-    { name: 'Liabilities', value: totalDebt, color: '#f87171' },
-    { name: 'Net Worth', value: Math.abs(netWorth), color: netWorth >= 0 ? '#c9a227' : '#e05252' },
+    { name: t('dashboard.assets'), value: totalMoney, color: '#4ade80' },
+    { name: t('dashboard.liabilities'), value: totalDebt, color: '#f87171' },
+    { name: t('dashboard.netWorth'), value: Math.abs(netWorth), color: netWorth >= 0 ? '#c9a227' : '#e05252' },
   ];
 
   return (
@@ -51,7 +54,7 @@ export function MoneyVsDebtChart({ totalMoney, totalDebt, netWorth }: MoneyVsDeb
         className="text-xs uppercase tracking-[0.3em] font-medium mb-5"
         style={{ color: '#3a4f6e', fontFamily: "'Instrument Sans', sans-serif" }}
       >
-        Financial Overview
+        {t('dashboard.financialOverview')}
       </p>
 
       <ResponsiveContainer width="100%" height={200}>

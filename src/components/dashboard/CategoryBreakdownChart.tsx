@@ -1,6 +1,7 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import type { CategoryBreakdown } from '@/utils/calculations';
 import { formatCurrency } from '@/utils/formatters';
+import { useTranslation } from 'react-i18next';
 
 interface CategoryBreakdownChartProps {
   data: CategoryBreakdown[];
@@ -48,6 +49,8 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: Array<
 }
 
 export function CategoryBreakdownChart({ data }: CategoryBreakdownChartProps) {
+  const { t } = useTranslation();
+
   if (data.length === 0) {
     return (
       <div
@@ -58,10 +61,10 @@ export function CategoryBreakdownChart({ data }: CategoryBreakdownChartProps) {
           className="text-xs uppercase tracking-[0.3em] font-medium mb-4"
           style={{ color: '#3a4f6e', fontFamily: "'Instrument Sans', sans-serif" }}
         >
-          Expenses by Category
+          {t('dashboard.expensesByCategory')}
         </p>
         <div className="flex-1 flex items-center justify-center">
-          <p className="text-sm" style={{ color: '#3a4f6e' }}>No expense data available</p>
+          <p className="text-sm" style={{ color: '#3a4f6e' }}>{t('dashboard.noExpenseData')}</p>
         </div>
       </div>
     );
@@ -82,7 +85,7 @@ export function CategoryBreakdownChart({ data }: CategoryBreakdownChartProps) {
         className="text-xs uppercase tracking-[0.3em] font-medium mb-5"
         style={{ color: '#3a4f6e', fontFamily: "'Instrument Sans', sans-serif" }}
       >
-        Expenses by Category
+        {t('dashboard.expensesByCategory')}
       </p>
 
       <div className="flex flex-col gap-4">

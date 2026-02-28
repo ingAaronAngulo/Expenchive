@@ -16,6 +16,7 @@ import { AddExpenseDialog } from '@/components/expenses/AddExpenseDialog';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { ErrorMessage } from '@/components/common/ErrorMessage';
 import { EmptyState } from '@/components/common/EmptyState';
+import { useTranslation } from 'react-i18next';
 
 export function Expenses() {
   const [filter, setFilter] = useState<ExpenseFilter | undefined>();
@@ -23,10 +24,10 @@ export function Expenses() {
   const { accounts } = useAccounts();
   const { creditCards } = useCreditCards();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const { t } = useTranslation();
 
   const handleDialogClose = (open: boolean) => {
     setIsAddDialogOpen(open);
-    // Reset to first page when dialog closes (to show new expense)
     if (!open) {
       pagination.resetPagination();
     }
@@ -60,14 +61,14 @@ export function Expenses() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold">Expenses</h1>
+          <h1 className="text-2xl md:text-3xl font-bold">{t('expenses.title')}</h1>
           <p className="text-sm md:text-base text-muted-foreground mt-1">
-            Track your expenses and manage your budget
+            {t('expenses.description')}
           </p>
         </div>
         <Button onClick={() => setIsAddDialogOpen(true)} className="w-full sm:w-auto">
           <Plus className="mr-2 h-4 w-4" />
-          Add Expense
+          {t('expenses.addExpense')}
         </Button>
       </div>
 
@@ -75,10 +76,10 @@ export function Expenses() {
       <div className="flex items-center gap-2">
         <Select value={filter ? (filter.type === 'account' ? `account:${filter.id}` : `card:${filter.id}`) : 'all'} onValueChange={handleFilterChange}>
           <SelectTrigger className="w-full sm:w-64">
-            <SelectValue placeholder="Filter by payment source..." />
+            <SelectValue placeholder={t('expenses.filterPlaceholder')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Expenses</SelectItem>
+            <SelectItem value="all">{t('expenses.allSources')}</SelectItem>
             {accounts.length > 0 && (
               <>
                 {accounts.map((account) => (
@@ -111,9 +112,9 @@ export function Expenses() {
       {!error && expenses.length === 0 && pagination.currentPage === 1 ? (
         <EmptyState
           icon={Receipt}
-          title="No expenses yet"
-          description="Start tracking your expenses by adding your first transaction."
-          actionLabel="Add Expense"
+          title={t('expenses.noExpenses')}
+          description={t('expenses.noExpensesDescription')}
+          actionLabel={t('expenses.addExpense')}
           onAction={() => setIsAddDialogOpen(true)}
         />
       ) : (

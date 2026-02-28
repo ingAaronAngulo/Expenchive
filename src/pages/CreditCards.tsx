@@ -7,10 +7,12 @@ import { AddCreditCardDialog } from '@/components/credit-cards/AddCreditCardDial
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { ErrorMessage } from '@/components/common/ErrorMessage';
 import { EmptyState } from '@/components/common/EmptyState';
+import { useTranslation } from 'react-i18next';
 
 export function CreditCards() {
   const { creditCards, loading, error } = useCreditCards();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const { t } = useTranslation();
 
   if (loading) {
     return (
@@ -24,14 +26,14 @@ export function CreditCards() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold">Credit Cards</h1>
+          <h1 className="text-2xl md:text-3xl font-bold">{t('creditCards.title')}</h1>
           <p className="text-sm md:text-base text-muted-foreground mt-1">
-            Track your credit cards and manage debt
+            {t('creditCards.description')}
           </p>
         </div>
         <Button onClick={() => setIsAddDialogOpen(true)} className="w-full sm:w-auto">
           <Plus className="mr-2 h-4 w-4" />
-          Add Card
+          {t('creditCards.addCard')}
         </Button>
       </div>
 
@@ -40,9 +42,9 @@ export function CreditCards() {
       {!error && creditCards.length === 0 ? (
         <EmptyState
           icon={CreditCard}
-          title="No credit cards yet"
-          description="Add your first credit card to start tracking credit expenses and debt."
-          actionLabel="Add Credit Card"
+          title={t('creditCards.noCards')}
+          description={t('creditCards.noCardsDescription')}
+          actionLabel={t('creditCards.addCreditCard')}
           onAction={() => setIsAddDialogOpen(true)}
         />
       ) : (

@@ -24,25 +24,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ErrorMessage } from '@/components/common/ErrorMessage';
-
-const accountSchema = z.object({
-  name: z.string().min(1, 'Account name is required'),
-  type: z.enum(['checking', 'savings', 'cash', 'other']),
-  balance: z.string().refine((val) => !isNaN(Number(val)) && Number(val) >= 0, {
-    message: 'Balance must be a positive number',
-  }),
-  lastFourDigits: z.string().refine((val) => val === '' || /^\d{4}$/.test(val), {
-    message: 'Last four digits must be exactly 4 digits',
-  }).optional(),
-  clabe: z.string().refine((val) => val === '' || /^\d{18}$/.test(val), {
-    message: 'CLABE must be 18 digits',
-  }).optional(),
-  annualReturn: z.string().refine((val) => val === '' || (!isNaN(Number(val)) && Number(val) >= -100), {
-    message: 'Annual return must be a valid number',
-  }).optional(),
-});
-
-type AccountFormData = z.infer<typeof accountSchema>;
+import { useTranslation } from 'react-i18next';
 
 interface AddAccountDialogProps {
   open: boolean;
@@ -53,6 +35,26 @@ export function AddAccountDialog({ open, onOpenChange }: AddAccountDialogProps) 
   const { user } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const { t } = useTranslation();
+
+  const accountSchema = z.object({
+    name: z.string().min(1, t('accountDialog.errors.nameRequired')),
+    type: z.enum(['checking', 'savings', 'cash', 'other']),
+    balance: z.string().refine((val) => !isNaN(Number(val)) && Number(val) >= 0, {
+      message: t('accountDialog.errors.balancePositive'),
+    }),
+    lastFourDigits: z.string().refine((val) => val === '' || /^\d{4}$/.test(val), {
+      message: t('accountDialog.errors.lastFourDigits'),
+    }).optional(),
+    clabe: z.string().refine((val) => val === '' || /^\d{18}$/.test(val), {
+      message: t('accountDialog.errors.clabe'),
+    }).optional(),
+    annualReturn: z.string().refine((val) => val === '' || (!isNaN(Number(val)) && Number(val) >= -100), {
+      message: t('accountDialog.errors.annualReturn'),
+    }).optional(),
+  });
+
+  type AccountFormData = z.infer<typeof accountSchema>;
 
   const {
     register,
@@ -63,25 +65,16 @@ export function AddAccountDialog({ open, onOpenChange }: AddAccountDialogProps) 
     reset,
   } = useForm<AccountFormData>({
     resolver: zodResolver(accountSchema),
-    defaultValues: {
-      name: '',
-      type: 'checking',
-      balance: '0',
-      lastFourDigits: '',
-      clabe: '',
-      annualReturn: '',
-    },
+    defaultValues: { name: '', type: 'checking', balance: '0', lastFourDigits: '', clabe: '', annualReturn: '' },
   });
 
   const accountType = watch('type');
 
   const onSubmit = async (data: AccountFormData) => {
     if (!user) return;
-
     try {
       setError(null);
       setLoading(true);
-
       await createAccount(user.uid, {
         name: data.name,
         type: data.type,
@@ -91,21 +84,17 @@ export function AddAccountDialog({ open, onOpenChange }: AddAccountDialogProps) 
         clabe: data.clabe || null,
         annualReturn: data.annualReturn ? Number(data.annualReturn) : null,
       });
-
       reset();
       onOpenChange(false);
     } catch (err: any) {
-      setError(err.message || 'Failed to create account');
+      setError(err.message || t('accountDialog.errors.failedCreate'));
     } finally {
       setLoading(false);
     }
   };
 
   const handleOpenChange = (newOpen: boolean) => {
-    if (!newOpen) {
-      reset();
-      setError(null);
-    }
+    if (!newOpen) { reset(); setError(null); }
     onOpenChange(newOpen);
   };
 
@@ -113,120 +102,66 @@ export function AddAccountDialog({ open, onOpenChange }: AddAccountDialogProps) 
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add Account</DialogTitle>
-          <DialogDescription>
-            Add a new bank account or cash account to track your money.
-          </DialogDescription>
+          <DialogTitle>{t('accountDialog.addTitle')}</DialogTitle>
+          <DialogDescription>{t('accountDialog.addDescription')}</DialogDescription>
         </DialogHeader>
 
         {error && <ErrorMessage message={error} />}
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Account Name</Label>
-            <Input
-              id="name"
-              placeholder="e.g., Chase Checking"
-              {...register('name')}
-            />
-            {errors.name && (
-              <p className="text-sm text-red-600">{errors.name.message}</p>
-            )}
+            <Label htmlFor="name">{t('accountDialog.accountName')}</Label>
+            <Input id="name" placeholder="e.g., Chase Checking" {...register('name')} />
+            {errors.name && <p className="text-sm text-red-600">{errors.name.message}</p>}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="type">Account Type</Label>
-            <Select
-              value={accountType}
-              onValueChange={(value) => setValue('type', value as any)}
-            >
+            <Label htmlFor="type">{t('accountDialog.accountType')}</Label>
+            <Select value={accountType} onValueChange={(value) => setValue('type', value as any)}>
               <SelectTrigger>
-                <SelectValue placeholder="Select account type" />
+                <SelectValue placeholder={t('accountDialog.selectType')} />
               </SelectTrigger>
               <SelectContent>
                 {ACCOUNT_TYPES.map((type) => (
-                  <SelectItem key={type.value} value={type.value}>
-                    {type.label}
-                  </SelectItem>
+                  <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            {errors.type && (
-              <p className="text-sm text-red-600">{errors.type.message}</p>
-            )}
+            {errors.type && <p className="text-sm text-red-600">{errors.type.message}</p>}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="balance">Initial Balance</Label>
-            <Input
-              id="balance"
-              type="number"
-              step="0.01"
-              placeholder="0.00"
-              {...register('balance')}
-            />
-            {errors.balance && (
-              <p className="text-sm text-red-600">{errors.balance.message}</p>
-            )}
+            <Label htmlFor="balance">{t('accountDialog.initialBalance')}</Label>
+            <Input id="balance" type="number" step="0.01" placeholder="0.00" {...register('balance')} />
+            {errors.balance && <p className="text-sm text-red-600">{errors.balance.message}</p>}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="lastFourDigits">Last 4 Digits (Optional)</Label>
-            <Input
-              id="lastFourDigits"
-              maxLength={4}
-              placeholder="e.g., 1234"
-              {...register('lastFourDigits')}
-            />
-            {errors.lastFourDigits && (
-              <p className="text-sm text-red-600">{errors.lastFourDigits.message}</p>
-            )}
+            <Label htmlFor="lastFourDigits">{t('form.lastFourDigits')}</Label>
+            <Input id="lastFourDigits" maxLength={4} placeholder="e.g., 1234" {...register('lastFourDigits')} />
+            {errors.lastFourDigits && <p className="text-sm text-red-600">{errors.lastFourDigits.message}</p>}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="clabe">CLABE (Optional)</Label>
-            <Input
-              id="clabe"
-              placeholder="18-digit CLABE number"
-              {...register('clabe')}
-              maxLength={18}
-            />
-            <p className="text-xs text-muted-foreground">
-              18-digit Standardized Banking Cipher Encryption number
-            </p>
-            {errors.clabe && (
-              <p className="text-sm text-red-600">{errors.clabe.message}</p>
-            )}
+            <Label htmlFor="clabe">{t('form.clabe')}</Label>
+            <Input id="clabe" placeholder={t('form.clabe18Digits')} {...register('clabe')} maxLength={18} />
+            <p className="text-xs text-muted-foreground">{t('form.clabeHint')}</p>
+            {errors.clabe && <p className="text-sm text-red-600">{errors.clabe.message}</p>}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="annualReturn">Annual Return % (Optional)</Label>
-            <Input
-              id="annualReturn"
-              type="number"
-              step="0.01"
-              placeholder="e.g., 5.5"
-              {...register('annualReturn')}
-            />
-            <p className="text-xs text-muted-foreground">
-              Expected annual return percentage for this account
-            </p>
-            {errors.annualReturn && (
-              <p className="text-sm text-red-600">{errors.annualReturn.message}</p>
-            )}
+            <Label htmlFor="annualReturn">{t('form.annualReturn')}</Label>
+            <Input id="annualReturn" type="number" step="0.01" placeholder="e.g., 5.5" {...register('annualReturn')} />
+            <p className="text-xs text-muted-foreground">{t('form.annualReturnHint')}</p>
+            {errors.annualReturn && <p className="text-sm text-red-600">{errors.annualReturn.message}</p>}
           </div>
 
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => handleOpenChange(false)}
-              disabled={loading}
-            >
-              Cancel
+            <Button type="button" variant="outline" onClick={() => handleOpenChange(false)} disabled={loading}>
+              {t('common.cancel')}
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? 'Adding...' : 'Add Account'}
+              {loading ? t('common.adding') : t('accountDialog.addButton')}
             </Button>
           </DialogFooter>
         </form>

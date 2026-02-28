@@ -8,23 +8,25 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-
-const signupSchema = z.object({
-  displayName: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ['confirmPassword'],
-});
-
-type SignupFormData = z.infer<typeof signupSchema>;
+import { useTranslation } from 'react-i18next';
 
 export function Signup() {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const { t } = useTranslation();
+
+  const signupSchema = z.object({
+    displayName: z.string().min(2, t('auth.errors.nameMin')),
+    email: z.string().email(t('auth.errors.invalidEmail')),
+    password: z.string().min(6, t('auth.errors.passwordMin')),
+    confirmPassword: z.string(),
+  }).refine((data) => data.password === data.confirmPassword, {
+    message: t('auth.errors.passwordsNoMatch'),
+    path: ['confirmPassword'],
+  });
+
+  type SignupFormData = z.infer<typeof signupSchema>;
 
   const {
     register,
@@ -41,7 +43,7 @@ export function Signup() {
       await signUpWithEmail(data.email, data.password, data.displayName);
       navigate('/');
     } catch (err: any) {
-      setError(err.message || 'Failed to create account');
+      setError(err.message || t('auth.errors.failedCreateAccount'));
     } finally {
       setLoading(false);
     }
@@ -54,7 +56,7 @@ export function Signup() {
       await signInWithGoogle();
       navigate('/');
     } catch (err: any) {
-      setError(err.message || 'Failed to sign in with Google');
+      setError(err.message || t('auth.errors.failedSignInGoogle'));
     } finally {
       setLoading(false);
     }
@@ -64,8 +66,8 @@ export function Signup() {
     <div className="flex items-center justify-center min-h-screen bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">Create Account</CardTitle>
-          <CardDescription>Enter your information to get started</CardDescription>
+          <CardTitle className="text-2xl font-bold">{t('auth.signUpTitle')}</CardTitle>
+          <CardDescription>{t('auth.signUpDescription')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {error && (
@@ -76,7 +78,7 @@ export function Signup() {
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="displayName">Name</Label>
+              <Label htmlFor="displayName">{t('auth.name')}</Label>
               <Input
                 id="displayName"
                 type="text"
@@ -89,7 +91,7 @@ export function Signup() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t('auth.email')}</Label>
               <Input
                 id="email"
                 type="email"
@@ -102,7 +104,7 @@ export function Signup() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{t('auth.password')}</Label>
               <Input
                 id="password"
                 type="password"
@@ -115,7 +117,7 @@ export function Signup() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Label htmlFor="confirmPassword">{t('auth.confirmPassword')}</Label>
               <Input
                 id="confirmPassword"
                 type="password"
@@ -128,7 +130,7 @@ export function Signup() {
             </div>
 
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Creating account...' : 'Create Account'}
+              {loading ? t('auth.creatingAccount') : t('auth.signUp')}
             </Button>
           </form>
 
@@ -138,7 +140,7 @@ export function Signup() {
             </div>
             <div className="relative flex justify-center text-xs uppercase">
               <span className="bg-background px-2 text-muted-foreground">
-                Or continue with
+                {t('auth.orContinueWith')}
               </span>
             </div>
           </div>
@@ -150,13 +152,13 @@ export function Signup() {
             onClick={handleGoogleSignIn}
             disabled={loading}
           >
-            Sign up with Google
+            {t('auth.signUpWithGoogle')}
           </Button>
 
           <div className="text-center text-sm">
-            Already have an account?{' '}
+            {t('auth.alreadyHaveAccount')}{' '}
             <Link to="/login" className="text-primary hover:underline">
-              Sign in
+              {t('auth.signInLink')}
             </Link>
           </div>
         </CardContent>

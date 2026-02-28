@@ -18,26 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { ErrorMessage } from '@/components/common/ErrorMessage';
-
-const loanFormSchema = z.object({
-  direction: z.enum(['lent', 'borrowed']),
-  personName: z.string().min(1, 'Person name is required'),
-  amount: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
-    message: 'Amount must be a positive number',
-  }),
-  accountId: z.string().min(1, 'Account is required'),
-  description: z.string().optional(),
-  clabe: z
-    .string()
-    .regex(/^\d{18}$/, 'CLABE must be exactly 18 digits')
-    .or(z.literal(''))
-    .optional(),
-  date: z.string().min(1, 'Date is required'),
-  dueDate: z.string().optional(),
-  includeInDashboard: z.boolean(),
-});
-
-type LoanFormData = z.infer<typeof loanFormSchema>;
+import { useTranslation } from 'react-i18next';
 
 interface AddLoanDialogProps {
   open: boolean;
@@ -49,6 +30,27 @@ export function AddLoanDialog({ open, onOpenChange }: AddLoanDialogProps) {
   const { accounts } = useAccounts();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const { t } = useTranslation();
+
+  const loanFormSchema = z.object({
+    direction: z.enum(['lent', 'borrowed']),
+    personName: z.string().min(1, t('loanDialog.errors.personRequired')),
+    amount: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
+      message: t('loanDialog.errors.amountPositive'),
+    }),
+    accountId: z.string().min(1, t('loanDialog.errors.accountRequired')),
+    description: z.string().optional(),
+    clabe: z
+      .string()
+      .regex(/^\d{18}$/, t('loanDialog.errors.clabeDigits'))
+      .or(z.literal(''))
+      .optional(),
+    date: z.string().min(1, t('loanDialog.errors.dateRequired')),
+    dueDate: z.string().optional(),
+    includeInDashboard: z.boolean(),
+  });
+
+  type LoanFormData = z.infer<typeof loanFormSchema>;
 
   const {
     register,
@@ -77,11 +79,9 @@ export function AddLoanDialog({ open, onOpenChange }: AddLoanDialogProps) {
 
   const onSubmit = async (data: LoanFormData) => {
     if (!user) return;
-
     try {
       setError(null);
       setLoading(true);
-
       await createLoan(user.uid, {
         direction: data.direction,
         personName: data.personName,
@@ -94,21 +94,17 @@ export function AddLoanDialog({ open, onOpenChange }: AddLoanDialogProps) {
         dueDate: data.dueDate ? new Date(data.dueDate) : null,
         includeInDashboard: data.includeInDashboard,
       });
-
       reset();
       onOpenChange(false);
     } catch (err: any) {
-      setError(err.message || 'Failed to create loan');
+      setError(err.message || t('loanDialog.errors.failedCreate'));
     } finally {
       setLoading(false);
     }
   };
 
   const handleOpenChange = (newOpen: boolean) => {
-    if (!newOpen) {
-      reset();
-      setError(null);
-    }
+    if (!newOpen) { reset(); setError(null); }
     onOpenChange(newOpen);
   };
 
@@ -116,17 +112,15 @@ export function AddLoanDialog({ open, onOpenChange }: AddLoanDialogProps) {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add Loan</DialogTitle>
-          <DialogDescription>
-            Track money you lent to others or borrowed from others.
-          </DialogDescription>
+          <DialogTitle>{t('loanDialog.addTitle')}</DialogTitle>
+          <DialogDescription>{t('loanDialog.addDescription')}</DialogDescription>
         </DialogHeader>
 
         {error && <ErrorMessage message={error} />}
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <Label>Direction</Label>
+            <Label>{t('loanDialog.direction')}</Label>
             <div className="flex gap-2">
               <Button
                 type="button"
@@ -134,7 +128,7 @@ export function AddLoanDialog({ open, onOpenChange }: AddLoanDialogProps) {
                 className="flex-1"
                 onClick={() => setValue('direction', 'lent')}
               >
-                I Lent Money
+                {t('loanDialog.lentMoney')}
               </Button>
               <Button
                 type="button"
@@ -142,100 +136,67 @@ export function AddLoanDialog({ open, onOpenChange }: AddLoanDialogProps) {
                 className="flex-1"
                 onClick={() => setValue('direction', 'borrowed')}
               >
-                I Borrowed Money
+                {t('loanDialog.borrowedMoney')}
               </Button>
             </div>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="personName">
-              {direction === 'lent' ? 'Borrower Name' : 'Lender Name'}
+              {direction === 'lent' ? t('loanDialog.borrowerName') : t('loanDialog.lenderName')}
             </Label>
-            <Input
-              id="personName"
-              placeholder="e.g., John Doe"
-              {...register('personName')}
-            />
-            {errors.personName && (
-              <p className="text-sm text-red-600">{errors.personName.message}</p>
-            )}
+            <Input id="personName" placeholder="e.g., John Doe" {...register('personName')} />
+            {errors.personName && <p className="text-sm text-red-600">{errors.personName.message}</p>}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="amount">Amount</Label>
-            <Input
-              id="amount"
-              type="number"
-              step="0.01"
-              placeholder="0.00"
-              {...register('amount')}
-            />
-            {errors.amount && (
-              <p className="text-sm text-red-600">{errors.amount.message}</p>
-            )}
+            <Label htmlFor="amount">{t('form.amount')}</Label>
+            <Input id="amount" type="number" step="0.01" placeholder="0.00" {...register('amount')} />
+            {errors.amount && <p className="text-sm text-red-600">{errors.amount.message}</p>}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="accountId">Account</Label>
+            <Label htmlFor="accountId">{t('form.account')}</Label>
             <select
               id="accountId"
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               {...register('accountId')}
             >
-              <option value="">Select account</option>
+              <option value="">{t('form.selectAccount')}</option>
               {accounts.map((account) => (
-                <option key={account.id} value={account.id}>
-                  {account.name}
-                </option>
+                <option key={account.id} value={account.id}>{account.name}</option>
               ))}
             </select>
-            {errors.accountId && (
-              <p className="text-sm text-red-600">{errors.accountId.message}</p>
-            )}
+            {errors.accountId && <p className="text-sm text-red-600">{errors.accountId.message}</p>}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="date">Date</Label>
+            <Label htmlFor="date">{t('form.date')}</Label>
             <Input id="date" type="date" {...register('date')} />
-            {errors.date && (
-              <p className="text-sm text-red-600">{errors.date.message}</p>
-            )}
+            {errors.date && <p className="text-sm text-red-600">{errors.date.message}</p>}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="dueDate">Due Date (optional)</Label>
+            <Label htmlFor="dueDate">{t('form.dueDate')}</Label>
             <Input id="dueDate" type="date" {...register('dueDate')} />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description (optional)</Label>
-            <Input
-              id="description"
-              placeholder="What was this loan for?"
-              {...register('description')}
-            />
+            <Label htmlFor="description">{t('form.description')}</Label>
+            <Input id="description" placeholder="What was this loan for?" {...register('description')} />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="clabe">CLABE (optional)</Label>
-            <Input
-              id="clabe"
-              placeholder="18-digit CLABE"
-              maxLength={18}
-              {...register('clabe')}
-            />
-            {errors.clabe && (
-              <p className="text-sm text-red-600">{errors.clabe.message}</p>
-            )}
+            <Label htmlFor="clabe">{t('form.clabe')}</Label>
+            <Input id="clabe" placeholder={t('form.clabe18Digits')} maxLength={18} {...register('clabe')} />
+            {errors.clabe && <p className="text-sm text-red-600">{errors.clabe.message}</p>}
           </div>
 
           <div className="flex items-center justify-between">
             <div>
-              <Label htmlFor="includeInDashboard">Include in Dashboard</Label>
+              <Label htmlFor="includeInDashboard">{t('loanDialog.includeInDashboard')}</Label>
               <p className="text-xs text-muted-foreground">
-                {direction === 'lent'
-                  ? 'Count lent money as an asset'
-                  : 'Count borrowed money as debt'}
+                {direction === 'lent' ? t('loanDialog.lentAsset') : t('loanDialog.borrowedDebt')}
               </p>
             </div>
             <Switch
@@ -246,16 +207,11 @@ export function AddLoanDialog({ open, onOpenChange }: AddLoanDialogProps) {
           </div>
 
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => handleOpenChange(false)}
-              disabled={loading}
-            >
-              Cancel
+            <Button type="button" variant="outline" onClick={() => handleOpenChange(false)} disabled={loading}>
+              {t('common.cancel')}
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? 'Adding...' : 'Add Loan'}
+              {loading ? t('common.adding') : t('loanDialog.addButton')}
             </Button>
           </DialogFooter>
         </form>

@@ -18,16 +18,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ErrorMessage } from '@/components/common/ErrorMessage';
-
-const paymentFormSchema = z.object({
-  amount: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
-    message: 'Amount must be a positive number',
-  }),
-  date: z.string().min(1, 'Date is required'),
-  note: z.string().optional(),
-});
-
-type PaymentFormData = z.infer<typeof paymentFormSchema>;
+import { useTranslation } from 'react-i18next';
 
 interface RecordPaymentDialogProps {
   loan: Loan | null;
@@ -39,6 +30,17 @@ export function RecordPaymentDialog({ loan, open, onOpenChange }: RecordPaymentD
   const { user } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const { t } = useTranslation();
+
+  const paymentFormSchema = z.object({
+    amount: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
+      message: t('loanDialog.errors.amountPositive'),
+    }),
+    date: z.string().min(1, t('loanDialog.errors.dateRequired')),
+    note: z.string().optional(),
+  });
+
+  type PaymentFormData = z.infer<typeof paymentFormSchema>;
 
   const {
     register,
@@ -56,52 +58,46 @@ export function RecordPaymentDialog({ loan, open, onOpenChange }: RecordPaymentD
 
   const onSubmit = async (data: PaymentFormData) => {
     if (!user || !loan) return;
-
     const paymentAmount = Number(data.amount);
     if (paymentAmount > loan.remainingAmount) {
       setError(`Payment cannot exceed remaining amount of ${formatCurrency(loan.remainingAmount, loan.currency)}`);
       return;
     }
-
     try {
       setError(null);
       setLoading(true);
-
       await recordPayment(user.uid, loan.id, loan.remainingAmount, {
         amount: paymentAmount,
         date: new Date(data.date),
         note: data.note || null,
       });
-
       reset();
       onOpenChange(false);
     } catch (err: any) {
-      setError(err.message || 'Failed to record payment');
+      setError(err.message || t('loanDialog.errors.failedPayment'));
     } finally {
       setLoading(false);
     }
   };
 
   const handleOpenChange = (newOpen: boolean) => {
-    if (!newOpen) {
-      reset();
-      setError(null);
-    }
+    if (!newOpen) { reset(); setError(null); }
     onOpenChange(newOpen);
   };
 
   if (!loan) return null;
 
+  const description = loan.direction === 'lent'
+    ? t('loanDialog.payingBack', { name: loan.personName })
+    : t('loanDialog.youPayingBack', { name: loan.personName });
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Record Payment</DialogTitle>
+          <DialogTitle>{t('loanDialog.recordTitle')}</DialogTitle>
           <DialogDescription>
-            {loan.direction === 'lent'
-              ? `${loan.personName} is paying you back`
-              : `You are paying back ${loan.personName}`}
-            {' — '}Remaining: {formatCurrency(loan.remainingAmount, loan.currency)}
+            {description}{' — '}{t('loanDialog.remaining')} {formatCurrency(loan.remainingAmount, loan.currency)}
           </DialogDescription>
         </DialogHeader>
 
@@ -109,7 +105,7 @@ export function RecordPaymentDialog({ loan, open, onOpenChange }: RecordPaymentD
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="payAmount">Payment Amount</Label>
+            <Label htmlFor="payAmount">{t('loanDialog.paymentAmount')}</Label>
             <Input
               id="payAmount"
               type="number"
@@ -117,35 +113,26 @@ export function RecordPaymentDialog({ loan, open, onOpenChange }: RecordPaymentD
               placeholder={`Max: ${loan.remainingAmount}`}
               {...register('amount')}
             />
-            {errors.amount && (
-              <p className="text-sm text-red-600">{errors.amount.message}</p>
-            )}
+            {errors.amount && <p className="text-sm text-red-600">{errors.amount.message}</p>}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="payDate">Date</Label>
+            <Label htmlFor="payDate">{t('form.date')}</Label>
             <Input id="payDate" type="date" {...register('date')} />
-            {errors.date && (
-              <p className="text-sm text-red-600">{errors.date.message}</p>
-            )}
+            {errors.date && <p className="text-sm text-red-600">{errors.date.message}</p>}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="note">Note (optional)</Label>
+            <Label htmlFor="note">{t('form.note')}</Label>
             <Input id="note" placeholder="e.g., partial payment" {...register('note')} />
           </div>
 
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => handleOpenChange(false)}
-              disabled={loading}
-            >
-              Cancel
+            <Button type="button" variant="outline" onClick={() => handleOpenChange(false)} disabled={loading}>
+              {t('common.cancel')}
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? 'Recording...' : 'Record Payment'}
+              {loading ? t('common.recording') : t('loanDialog.recordButton')}
             </Button>
           </DialogFooter>
         </form>

@@ -1,4 +1,5 @@
 import { formatCurrency } from '@/utils/formatters';
+import { useTranslation } from 'react-i18next';
 
 interface FinancialSummaryProps {
   totalMoney: number;
@@ -8,6 +9,7 @@ interface FinancialSummaryProps {
 
 export function FinancialSummary({ totalMoney, totalDebt, netWorth }: FinancialSummaryProps) {
   const isPositive = netWorth >= 0;
+  const { t } = useTranslation();
 
   return (
     <div
@@ -48,7 +50,7 @@ export function FinancialSummary({ totalMoney, totalDebt, netWorth }: FinancialS
           className="text-xs uppercase tracking-[0.35em] font-medium"
           style={{ color: '#3a4f6e', fontFamily: "'Instrument Sans', sans-serif" }}
         >
-          Net Worth
+          {t('dashboard.netWorth')}
         </p>
 
         {/* Hero number */}
@@ -76,7 +78,7 @@ export function FinancialSummary({ totalMoney, totalDebt, netWorth }: FinancialS
               className="text-xs uppercase tracking-wider mb-1.5"
               style={{ color: '#3a4f6e', fontFamily: "'Instrument Sans', sans-serif" }}
             >
-              Assets
+              {t('dashboard.assets')}
             </p>
             <p
               className="text-xl font-semibold"
@@ -85,7 +87,7 @@ export function FinancialSummary({ totalMoney, totalDebt, netWorth }: FinancialS
               {formatCurrency(totalMoney)}
             </p>
             <p className="text-xs mt-1" style={{ color: '#3a4f6e' }}>
-              Accounts + Investments
+              {t('dashboard.assetsSubtitle')}
             </p>
           </div>
 
@@ -96,7 +98,7 @@ export function FinancialSummary({ totalMoney, totalDebt, netWorth }: FinancialS
               className="text-xs uppercase tracking-wider mb-1.5"
               style={{ color: '#3a4f6e', fontFamily: "'Instrument Sans', sans-serif" }}
             >
-              Liabilities
+              {t('dashboard.liabilities')}
             </p>
             <p
               className="text-xl font-semibold"
@@ -105,7 +107,7 @@ export function FinancialSummary({ totalMoney, totalDebt, netWorth }: FinancialS
               {formatCurrency(totalDebt)}
             </p>
             <p className="text-xs mt-1" style={{ color: '#3a4f6e' }}>
-              Credit card debt
+              {t('dashboard.liabilitiesSubtitle')}
             </p>
           </div>
         </div>

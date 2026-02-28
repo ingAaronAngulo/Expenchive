@@ -26,15 +26,7 @@ import {
 } from '@/components/ui/select';
 import { ErrorMessage } from '@/components/common/ErrorMessage';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
-
-const paymentSchema = z.object({
-  accountId: z.string().min(1, 'Please select an account'),
-  amount: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
-    message: 'Amount must be greater than 0',
-  }),
-});
-
-type PaymentFormData = z.infer<typeof paymentSchema>;
+import { useTranslation } from 'react-i18next';
 
 interface PayCreditCardDialogProps {
   open: boolean;
@@ -46,6 +38,16 @@ export function PayCreditCardDialog({ open, onOpenChange, creditCard }: PayCredi
   const { accounts, loading: accountsLoading } = useAccounts();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const { t } = useTranslation();
+
+  const paymentSchema = z.object({
+    accountId: z.string().min(1, t('creditCardDialog.errors.selectAccount')),
+    amount: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
+      message: t('creditCardDialog.errors.amountPositive'),
+    }),
+  });
+
+  type PaymentFormData = z.infer<typeof paymentSchema>;
 
   const {
     register,
@@ -56,10 +58,7 @@ export function PayCreditCardDialog({ open, onOpenChange, creditCard }: PayCredi
     watch,
   } = useForm<PaymentFormData>({
     resolver: zodResolver(paymentSchema),
-    defaultValues: {
-      accountId: '',
-      amount: '',
-    },
+    defaultValues: { accountId: '', amount: '' },
   });
 
   const selectedAccountId = watch('accountId');
@@ -67,45 +66,35 @@ export function PayCreditCardDialog({ open, onOpenChange, creditCard }: PayCredi
 
   const onSubmit = async (data: PaymentFormData) => {
     if (!creditCard) return;
-
     try {
       setError(null);
       setLoading(true);
-
-      const amount = Number(data.amount);
-
-      await payCreditCard(creditCard.id, data.accountId, amount);
-
+      await payCreditCard(creditCard.id, data.accountId, Number(data.amount));
       reset();
       onOpenChange(false);
     } catch (err: any) {
-      setError(err.message || 'Failed to process payment');
+      setError(err.message || t('creditCardDialog.errors.failedPayment'));
     } finally {
       setLoading(false);
     }
   };
 
   const handleOpenChange = (newOpen: boolean) => {
-    if (!newOpen) {
-      reset();
-      setError(null);
-    }
+    if (!newOpen) { reset(); setError(null); }
     onOpenChange(newOpen);
   };
 
   const handlePayFull = () => {
-    if (creditCard) {
-      setValue('amount', creditCard.currentBalance.toString());
-    }
+    if (creditCard) setValue('amount', creditCard.currentBalance.toString());
   };
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Pay Credit Card</DialogTitle>
+          <DialogTitle>{t('creditCardDialog.payTitle')}</DialogTitle>
           <DialogDescription>
-            Make a payment to {creditCard?.name}
+            {t('creditCardDialog.payDescription', { name: creditCard?.name })}
           </DialogDescription>
         </DialogHeader>
 
@@ -121,7 +110,7 @@ export function PayCreditCardDialog({ open, onOpenChange, creditCard }: PayCredi
               {creditCard && (
                 <div className="rounded-lg bg-muted p-4 space-y-2">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Current Balance:</span>
+                    <span className="text-muted-foreground">{t('creditCardDialog.currentBalanceLabel')}</span>
                     <span className="font-semibold text-destructive">
                       {formatCurrency(creditCard.currentBalance)}
                     </span>
@@ -130,18 +119,15 @@ export function PayCreditCardDialog({ open, onOpenChange, creditCard }: PayCredi
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="accountId">Pay from Account</Label>
-                <Select
-                  onValueChange={(value) => setValue('accountId', value)}
-                  defaultValue=""
-                >
+                <Label htmlFor="accountId">{t('creditCardDialog.payFromAccount')}</Label>
+                <Select onValueChange={(value) => setValue('accountId', value)} defaultValue="">
                   <SelectTrigger>
-                    <SelectValue placeholder="Select an account" />
+                    <SelectValue placeholder={t('creditCardDialog.selectAnAccount')} />
                   </SelectTrigger>
                   <SelectContent>
                     {accounts.length === 0 ? (
                       <div className="p-2 text-sm text-muted-foreground">
-                        No accounts available
+                        {t('form.noAccountsAvailable')}
                       </div>
                     ) : (
                       accounts.map((account) => (
@@ -152,52 +138,31 @@ export function PayCreditCardDialog({ open, onOpenChange, creditCard }: PayCredi
                     )}
                   </SelectContent>
                 </Select>
-                {errors.accountId && (
-                  <p className="text-sm text-destructive">{errors.accountId.message}</p>
-                )}
+                {errors.accountId && <p className="text-sm text-destructive">{errors.accountId.message}</p>}
                 {selectedAccount && selectedAccount.balance === 0 && (
-                  <p className="text-sm text-amber-600">Warning: This account has no balance</p>
+                  <p className="text-sm text-amber-600">{t('creditCardDialog.noBalance')}</p>
                 )}
               </div>
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="amount">Payment Amount</Label>
+                  <Label htmlFor="amount">{t('creditCardDialog.paymentAmount')}</Label>
                   {creditCard && creditCard.currentBalance > 0 && (
-                    <Button
-                      type="button"
-                      variant="link"
-                      size="sm"
-                      onClick={handlePayFull}
-                      className="h-auto p-0 text-xs"
-                    >
-                      Pay full balance
+                    <Button type="button" variant="link" size="sm" onClick={handlePayFull} className="h-auto p-0 text-xs">
+                      {t('creditCardDialog.payFullBalance')}
                     </Button>
                   )}
                 </div>
-                <Input
-                  id="amount"
-                  type="number"
-                  step="0.01"
-                  placeholder="e.g., 100"
-                  {...register('amount')}
-                />
-                {errors.amount && (
-                  <p className="text-sm text-destructive">{errors.amount.message}</p>
-                )}
+                <Input id="amount" type="number" step="0.01" placeholder="e.g., 100" {...register('amount')} />
+                {errors.amount && <p className="text-sm text-destructive">{errors.amount.message}</p>}
               </div>
 
               <DialogFooter>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => handleOpenChange(false)}
-                  disabled={loading}
-                >
-                  Cancel
+                <Button type="button" variant="outline" onClick={() => handleOpenChange(false)} disabled={loading}>
+                  {t('common.cancel')}
                 </Button>
                 <Button type="submit" disabled={loading || accounts.length === 0}>
-                  {loading ? 'Processing...' : 'Make Payment'}
+                  {loading ? t('common.processing') : t('creditCardDialog.makePayment')}
                 </Button>
               </DialogFooter>
             </form>

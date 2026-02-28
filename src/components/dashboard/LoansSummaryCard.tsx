@@ -1,4 +1,5 @@
 import { formatCurrency } from '@/utils/formatters';
+import { useTranslation } from 'react-i18next';
 
 interface LoansSummaryCardProps {
   totalLent: number;
@@ -8,6 +9,7 @@ interface LoansSummaryCardProps {
 export function LoansSummaryCard({ totalLent, totalBorrowed }: LoansSummaryCardProps) {
   const net = totalLent - totalBorrowed;
   const isPositive = net >= 0;
+  const { t } = useTranslation();
 
   return (
     <div
@@ -23,7 +25,7 @@ export function LoansSummaryCard({ totalLent, totalBorrowed }: LoansSummaryCardP
             className="text-xs uppercase tracking-[0.3em] font-medium mb-2"
             style={{ color: '#3a4f6e', fontFamily: "'Instrument Sans', sans-serif" }}
           >
-            Loans Position
+            {t('dashboard.loansPosition')}
           </p>
           <div
             style={{
@@ -51,7 +53,7 @@ export function LoansSummaryCard({ totalLent, totalBorrowed }: LoansSummaryCardP
             className="text-xs text-right"
             style={{ color: '#3a4f6e', fontFamily: "'Instrument Sans', sans-serif" }}
           >
-            Lent out
+            {t('dashboard.lentOut')}
           </div>
 
           <div className="flex items-center gap-2 justify-end mt-1">
@@ -67,7 +69,7 @@ export function LoansSummaryCard({ totalLent, totalBorrowed }: LoansSummaryCardP
             className="text-xs text-right"
             style={{ color: '#3a4f6e', fontFamily: "'Instrument Sans', sans-serif" }}
           >
-            Borrowed
+            {t('dashboard.borrowed')}
           </div>
         </div>
       </div>
