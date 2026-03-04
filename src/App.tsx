@@ -11,8 +11,11 @@ import { Accounts } from './pages/Accounts';
 import { Settings } from './pages/Settings';
 import { Loans } from './pages/Loans';
 import { Snapshots } from './pages/Snapshots';
+import { useAuth } from './hooks/useAuth';
 
 function App() {
+  useAuth();
+
   return (
     <BrowserRouter>
       <Routes>
