@@ -3,7 +3,6 @@ import {
   LayoutDashboard,
   Receipt,
   CreditCard,
-  TrendingUp,
   Wallet,
   Settings,
   X,
