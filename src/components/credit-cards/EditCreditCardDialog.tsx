@@ -107,7 +107,7 @@ export function EditCreditCardDialog({ open, onOpenChange, creditCard }: EditCre
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent>
+      <DialogContent className="flex flex-col max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>{t('creditCardDialog.editTitle')}</DialogTitle>
           <DialogDescription>{t('creditCardDialog.editDescription')}</DialogDescription>
@@ -115,7 +115,7 @@ export function EditCreditCardDialog({ open, onOpenChange, creditCard }: EditCre
 
         {error && <ErrorMessage message={error} />}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 overflow-y-auto flex-1 px-1">
           <div className="space-y-2">
             <Label htmlFor="name">{t('creditCardDialog.cardName')}</Label>
             <Input id="name" placeholder="e.g., Chase Sapphire" {...register('name')} />
