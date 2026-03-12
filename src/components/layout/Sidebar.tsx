@@ -25,7 +25,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     { name: t('nav.dashboard'), href: '/', icon: LayoutDashboard },
     { name: t('nav.expenses'), href: '/expenses', icon: Receipt },
     { name: t('nav.creditCards'), href: '/credit-cards', icon: CreditCard },
-    { name: t('nav.investments'), href: '/investments', icon: TrendingUp },
     { name: t('nav.accounts'), href: '/accounts', icon: Wallet },
     { name: t('nav.loans'), href: '/loans', icon: HandCoins },
     { name: t('nav.snapshots'), href: '/snapshots', icon: Camera },

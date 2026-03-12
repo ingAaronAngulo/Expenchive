@@ -105,7 +105,7 @@ export function EditLoanDialog({ loan, open, onOpenChange }: EditLoanDialogProps
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>{t('loanDialog.editTitle')}</DialogTitle>
           <DialogDescription>{t('loanDialog.editDescription')}</DialogDescription>
@@ -113,44 +113,46 @@ export function EditLoanDialog({ loan, open, onOpenChange }: EditLoanDialogProps
 
         {error && <ErrorMessage message={error} />}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="personName">
-              {loan?.direction === 'lent' ? t('loanDialog.borrowerName') : t('loanDialog.lenderName')}
-            </Label>
-            <Input id="personName" placeholder="e.g., John Doe" {...register('personName')} />
-            {errors.personName && <p className="text-sm text-red-600">{errors.personName.message}</p>}
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col flex-1 min-h-0 gap-4">
+          <div className="flex-1 overflow-y-auto space-y-4 min-h-0">
+            <div className="space-y-2">
+              <Label htmlFor="personName">
+                {loan?.direction === 'lent' ? t('loanDialog.borrowerName') : t('loanDialog.lenderName')}
+              </Label>
+              <Input id="personName" placeholder="e.g., John Doe" {...register('personName')} />
+              {errors.personName && <p className="text-sm text-red-600">{errors.personName.message}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="amount">{t('form.amount')}</Label>
+              <Input id="amount" type="number" step="0.01" placeholder="0.00" {...register('amount')} />
+              {errors.amount && <p className="text-sm text-red-600">{errors.amount.message}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="date">{t('form.date')}</Label>
+              <Input id="date" type="date" {...register('date')} />
+              {errors.date && <p className="text-sm text-red-600">{errors.date.message}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="dueDate">{t('form.dueDate')}</Label>
+              <Input id="dueDate" type="date" {...register('dueDate')} />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description">{t('form.description')}</Label>
+              <Input id="description" placeholder="What was this loan for?" {...register('description')} />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="clabe">{t('form.clabe')}</Label>
+              <Input id="clabe" placeholder={t('form.clabe18Digits')} maxLength={18} {...register('clabe')} />
+              {errors.clabe && <p className="text-sm text-red-600">{errors.clabe.message}</p>}
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="amount">{t('form.amount')}</Label>
-            <Input id="amount" type="number" step="0.01" placeholder="0.00" {...register('amount')} />
-            {errors.amount && <p className="text-sm text-red-600">{errors.amount.message}</p>}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="date">{t('form.date')}</Label>
-            <Input id="date" type="date" {...register('date')} />
-            {errors.date && <p className="text-sm text-red-600">{errors.date.message}</p>}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="dueDate">{t('form.dueDate')}</Label>
-            <Input id="dueDate" type="date" {...register('dueDate')} />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="description">{t('form.description')}</Label>
-            <Input id="description" placeholder="What was this loan for?" {...register('description')} />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="clabe">{t('form.clabe')}</Label>
-            <Input id="clabe" placeholder={t('form.clabe18Digits')} maxLength={18} {...register('clabe')} />
-            {errors.clabe && <p className="text-sm text-red-600">{errors.clabe.message}</p>}
-          </div>
-
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between border-t pt-2">
             <div>
               <Label htmlFor="includeInDashboard">{t('loanDialog.includeInDashboard')}</Label>
               <p className="text-xs text-muted-foreground">
