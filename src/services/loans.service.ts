@@ -79,19 +79,7 @@ export async function recordPayment(
 
     if (!loanSnap.exists()) throw new Error('Loan not found');
 
-    const loanData = loanSnap.data();
-    const accountRef = doc(db, ACCOUNTS_COLLECTION, loanData.accountId);
-    const accountSnap = await transaction.get(accountRef);
-
-    if (!accountSnap.exists()) throw new Error('Account not found');
-
-    const currentBalance = accountSnap.data().balance as number;
-    const newBalance =
-      loanData.direction === 'lent'
-        ? currentBalance + validated.amount
-        : currentBalance - validated.amount;
-
-    const newRemaining = loanData.remainingAmount - validated.amount;
+    const newRemaining = loanSnap.data().remainingAmount - validated.amount;
     const isPaid = newRemaining <= 0;
 
     const paymentRef = doc(collection(db, PAYMENTS_COLLECTION));
@@ -109,8 +97,6 @@ export async function recordPayment(
       isPaid,
       updatedAt: serverTimestamp(),
     });
-
-    transaction.update(accountRef, { balance: newBalance, updatedAt: serverTimestamp() });
   });
 }
 
