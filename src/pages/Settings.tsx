@@ -1,8 +1,20 @@
-import { useState } from 'react';
-import { Plus, Repeat } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Check, Plus, Repeat } from 'lucide-react';
 import { useRecurringExpenses } from '@/hooks/useRecurringExpenses';
+import { useAccounts } from '@/hooks/useAccounts';
+import { useCreditCards } from '@/hooks/useCreditCards';
+import { useUserSettings } from '@/hooks/useUserSettings';
+import { saveFavoritePaymentMethod } from '@/services/user-settings.service';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { RecurringExpensesList } from '@/components/recurring-expenses/RecurringExpensesList';
 import { AddRecurringExpenseDialog } from '@/components/recurring-expenses/AddRecurringExpenseDialog';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
@@ -14,8 +26,55 @@ import { useTranslation } from 'react-i18next';
 export function Settings() {
   const { user } = useAuth();
   const { recurringExpenses, loading, error } = useRecurringExpenses();
+  const { accounts } = useAccounts();
+  const { creditCards } = useCreditCards();
+  const { favoritePaymentMethod, loading: settingsLoading } = useUserSettings();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [favoritePaymentType, setFavoritePaymentType] = useState<'debit' | 'credit'>('debit');
+  const [favoriteAccountId, setFavoriteAccountId] = useState('');
+  const [favoriteCreditCardId, setFavoriteCreditCardId] = useState('');
+  const [savingFavorite, setSavingFavorite] = useState(false);
+  const [favoriteSaved, setFavoriteSaved] = useState(false);
+  const [favoriteError, setFavoriteError] = useState<string | null>(null);
   const { t } = useTranslation();
+
+  useEffect(() => {
+    if (favoritePaymentMethod?.type === 'debit') {
+      setFavoritePaymentType('debit');
+      setFavoriteAccountId(favoritePaymentMethod.accountId);
+    } else if (favoritePaymentMethod?.type === 'credit') {
+      setFavoritePaymentType('credit');
+      setFavoriteCreditCardId(favoritePaymentMethod.creditCardId);
+    }
+  }, [favoritePaymentMethod]);
+
+  const selectedFavoriteSource = favoritePaymentType === 'debit'
+    ? favoriteAccountId
+    : favoriteCreditCardId;
+
+  const handleSaveFavoritePayment = async () => {
+    if (!user || !selectedFavoriteSource) return;
+
+    setSavingFavorite(true);
+    setFavoriteSaved(false);
+    setFavoriteError(null);
+
+    try {
+      await saveFavoritePaymentMethod(
+        user.uid,
+        favoritePaymentType === 'debit'
+          ? { type: 'debit', accountId: favoriteAccountId }
+          : { type: 'credit', creditCardId: favoriteCreditCardId }
+      );
+      setFavoriteSaved(true);
+      setTimeout(() => setFavoriteSaved(false), 2500);
+    } catch (saveError) {
+      console.error('Error saving favorite payment method:', saveError);
+      setFavoriteError(t('settings.favoritePaymentError'));
+    } finally {
+      setSavingFavorite(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -43,6 +102,91 @@ export function Settings() {
               <p className="text-sm">{user.displayName}</p>
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('settings.favoritePayment')}</CardTitle>
+          <CardDescription>{t('settings.favoritePaymentDescription')}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {favoriteError && <ErrorMessage message={favoriteError} />}
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label>{t('form.paymentType')}</Label>
+              <Select
+                value={favoritePaymentType}
+                onValueChange={(value) => {
+                  setFavoritePaymentType(value as 'debit' | 'credit');
+                  setFavoriteSaved(false);
+                }}
+                disabled={settingsLoading}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="debit">{t('form.debitPayNow')}</SelectItem>
+                  <SelectItem value="credit">{t('form.creditPayLater')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>
+                {favoritePaymentType === 'debit' ? t('form.account') : t('form.creditCard')}
+              </Label>
+              {favoritePaymentType === 'debit' ? (
+                <Select
+                  value={favoriteAccountId}
+                  onValueChange={(value) => {
+                    setFavoriteAccountId(value);
+                    setFavoriteSaved(false);
+                  }}
+                  disabled={settingsLoading || accounts.length === 0}
+                >
+                  <SelectTrigger><SelectValue placeholder={t('form.selectAccount')} /></SelectTrigger>
+                  <SelectContent>
+                    {accounts.map((account) => (
+                      <SelectItem key={account.id} value={account.id}>{account.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Select
+                  value={favoriteCreditCardId}
+                  onValueChange={(value) => {
+                    setFavoriteCreditCardId(value);
+                    setFavoriteSaved(false);
+                  }}
+                  disabled={settingsLoading || creditCards.length === 0}
+                >
+                  <SelectTrigger><SelectValue placeholder={t('form.selectCreditCard')} /></SelectTrigger>
+                  <SelectContent>
+                    {creditCards.map((card) => (
+                      <SelectItem key={card.id} value={card.id}>{card.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+          </div>
+
+          {!selectedFavoriteSource && !settingsLoading && (
+            <p className="text-sm text-muted-foreground">{t('settings.selectPaymentSource')}</p>
+          )}
+
+          <Button
+            onClick={handleSaveFavoritePayment}
+            disabled={settingsLoading || savingFavorite || !selectedFavoriteSource}
+          >
+            {favoriteSaved && <Check className="mr-2 h-4 w-4" />}
+            {favoriteSaved
+              ? t('settings.favoritePaymentSaved')
+              : savingFavorite
+                ? t('common.saving')
+                : t('common.save')}
+          </Button>
         </CardContent>
       </Card>
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -31,9 +31,22 @@ import { useTranslation } from 'react-i18next';
 interface AddExpenseDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  initialValues?: {
+    name?: string;
+    category?: string;
+    paymentType?: 'debit' | 'credit';
+    accountId?: string;
+    creditCardId?: string;
+  };
+  autoFocusAmount?: boolean;
 }
 
-export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) {
+function todayAsInputValue() {
+  const date = new Date();
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+export function AddExpenseDialog({ open, onOpenChange, initialValues, autoFocusAmount = false }: AddExpenseDialogProps) {
   const { user } = useAuth();
   const { accounts } = useAccounts();
   const { creditCards } = useCreditCards();
@@ -86,7 +99,7 @@ export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) 
       name: '',
       amount: '',
       category: '',
-      date: (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; })(),
+      date: todayAsInputValue(),
       paymentType: 'debit',
       accountId: '',
       creditCardId: '',
@@ -100,6 +113,30 @@ export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) 
   const category = watch('category');
   const accountId = watch('accountId');
   const creditCardId = watch('creditCardId');
+
+  useEffect(() => {
+    if (!open) return;
+
+    reset({
+      name: initialValues?.name ?? '',
+      amount: '',
+      category: initialValues?.category ?? '',
+      date: todayAsInputValue(),
+      paymentType: initialValues?.paymentType ?? 'debit',
+      accountId: initialValues?.accountId ?? '',
+      creditCardId: initialValues?.creditCardId ?? '',
+      isInstallment: false,
+      installmentMonths: '',
+    });
+  }, [
+    open,
+    initialValues?.name,
+    initialValues?.category,
+    initialValues?.paymentType,
+    initialValues?.accountId,
+    initialValues?.creditCardId,
+    reset,
+  ]);
 
   const onSubmit = async (data: ExpenseFormData) => {
     if (!user) return;
@@ -122,8 +159,8 @@ export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) 
       });
       reset();
       onOpenChange(false);
-    } catch (err: any) {
-      setError(err.message || t('expenseDialog.failedCreate'));
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : t('expenseDialog.failedCreate'));
     } finally {
       setLoading(false);
     }
@@ -154,7 +191,14 @@ export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) 
 
             <div className="space-y-2">
               <Label htmlFor="amount">{t('form.amount')}</Label>
-              <Input id="amount" type="number" step="0.01" placeholder="0.00" {...register('amount')} />
+              <Input
+                id="amount"
+                type="number"
+                step="0.01"
+                placeholder="0.00"
+                autoFocus={autoFocusAmount}
+                {...register('amount')}
+              />
               {errors.amount && <p className="text-sm text-red-600">{errors.amount.message}</p>}
             </div>
 
@@ -181,7 +225,10 @@ export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) 
 
             <div className="col-span-2 space-y-2">
               <Label htmlFor="paymentType">{t('form.paymentType')}</Label>
-              <Select value={paymentType} onValueChange={(value) => setValue('paymentType', value as any)}>
+              <Select
+                value={paymentType}
+                onValueChange={(value) => setValue('paymentType', value as ExpenseFormData['paymentType'])}
+              >
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="debit">{t('form.debitPayNow')}</SelectItem>

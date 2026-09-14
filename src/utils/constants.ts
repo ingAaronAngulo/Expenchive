@@ -1,5 +1,6 @@
 // Expense categories organized by group
 export const EXPENSE_CATEGORIES = {
+  Quick: ['Quick'],
   Essential: ['Food', 'Transportation', 'Housing', 'Utilities', 'Healthcare', 'Insurance'],
   Lifestyle: ['Entertainment', 'Shopping', 'Dining Out', 'Travel', 'Hobbies'],
   Financial: ['Savings', 'Investments', 'Debt Payments', 'Subscriptions'],

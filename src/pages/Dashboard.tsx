@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Camera, Check } from 'lucide-react';
+import { Camera, Check, Plus } from 'lucide-react';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import { useAuth } from '@/hooks/useAuth';
 import { FinancialSummary } from '@/components/dashboard/FinancialSummary';
@@ -8,6 +8,9 @@ import { MoneyVsDebtChart } from '@/components/dashboard/MoneyVsDebtChart';
 import { LoansSummaryCard } from '@/components/dashboard/LoansSummaryCard';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { createSnapshot } from '@/services/snapshots.service';
+import { AddExpenseDialog } from '@/components/expenses/AddExpenseDialog';
+import { Button } from '@/components/ui/button';
+import { useUserSettings } from '@/hooks/useUserSettings';
 import { useTranslation } from 'react-i18next';
 
 export function Dashboard() {
@@ -15,6 +18,8 @@ export function Dashboard() {
   const { user } = useAuth();
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [isQuickExpenseOpen, setIsQuickExpenseOpen] = useState(false);
+  const { favoritePaymentMethod } = useUserSettings();
   const { t, i18n } = useTranslation();
 
   async function saveSnapshot() {
@@ -51,6 +56,14 @@ export function Dashboard() {
     day: 'numeric',
     year: 'numeric',
   });
+
+  const quickExpenseInitialValues = {
+    name: 'Gasto',
+    category: 'Quick',
+    paymentType: favoritePaymentMethod?.type ?? 'debit',
+    accountId: favoritePaymentMethod?.type === 'debit' ? favoritePaymentMethod.accountId : '',
+    creditCardId: favoritePaymentMethod?.type === 'credit' ? favoritePaymentMethod.creditCardId : '',
+  };
 
   return (
     <div className="space-y-4">
@@ -137,6 +150,24 @@ export function Dashboard() {
           </p>
         </div>
       )}
+
+      <Button
+        type="button"
+        size="icon"
+        onClick={() => setIsQuickExpenseOpen(true)}
+        className="fixed bottom-6 right-6 z-40 h-14 w-14 rounded-full shadow-lg hover:scale-105"
+        aria-label={t('dashboard.quickAddExpense')}
+        title={t('dashboard.quickAddExpense')}
+      >
+        <Plus className="h-6 w-6" />
+      </Button>
+
+      <AddExpenseDialog
+        open={isQuickExpenseOpen}
+        onOpenChange={setIsQuickExpenseOpen}
+        initialValues={quickExpenseInitialValues}
+        autoFocusAmount
+      />
     </div>
   );
 }
