@@ -38,7 +38,7 @@ export function AddLoanDialog({ open, onOpenChange }: AddLoanDialogProps) {
     amount: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
       message: t('loanDialog.errors.amountPositive'),
     }),
-    accountId: z.string().min(1, t('loanDialog.errors.accountRequired')),
+    accountId: z.string(),
     description: z.string().optional(),
     clabe: z
       .string()
@@ -87,7 +87,7 @@ export function AddLoanDialog({ open, onOpenChange }: AddLoanDialogProps) {
         personName: data.personName,
         amount: Number(data.amount),
         currency: accounts.find((a) => a.id === data.accountId)?.currency ?? 'USD',
-        accountId: data.accountId,
+        accountId: data.accountId || null,
         description: data.description || null,
         clabe: data.clabe || null,
         date: new Date(data.date),
@@ -163,12 +163,11 @@ export function AddLoanDialog({ open, onOpenChange }: AddLoanDialogProps) {
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 {...register('accountId')}
               >
-                <option value="">{t('form.selectAccount')}</option>
+                <option value="">{t('loanDialog.noLinkedAccount')}</option>
                 {accounts.map((account) => (
                   <option key={account.id} value={account.id}>{account.name}</option>
                 ))}
               </select>
-              {errors.accountId && <p className="text-sm text-red-600">{errors.accountId.message}</p>}
             </div>
 
             <div className="space-y-2">

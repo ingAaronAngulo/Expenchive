@@ -16,6 +16,8 @@ import { AddExpenseDialog } from '@/components/expenses/AddExpenseDialog';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { ErrorMessage } from '@/components/common/ErrorMessage';
 import { EmptyState } from '@/components/common/EmptyState';
+import { useUserSettings } from '@/hooks/useUserSettings';
+import { getQuickExpenseInitialValues } from '@/utils/quickExpense';
 import { useTranslation } from 'react-i18next';
 
 interface ExpensesProps {
@@ -28,7 +30,9 @@ export function Expenses({ embedded = false }: ExpensesProps) {
   const { accounts } = useAccounts();
   const { creditCards } = useCreditCards();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const { favoritePaymentMethod } = useUserSettings();
   const { t } = useTranslation();
+  const quickExpenseInitialValues = getQuickExpenseInitialValues(favoritePaymentMethod);
 
   const handleDialogClose = (open: boolean) => {
     setIsAddDialogOpen(open);
@@ -172,6 +176,8 @@ export function Expenses({ embedded = false }: ExpensesProps) {
       <AddExpenseDialog
         open={isAddDialogOpen}
         onOpenChange={handleDialogClose}
+        initialValues={quickExpenseInitialValues}
+        autoFocusAmount
       />
     </div>
   );

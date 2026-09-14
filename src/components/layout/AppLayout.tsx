@@ -5,19 +5,14 @@ import { MobileBottomNavigation } from './MobileBottomNavigation';
 import { AddExpenseDialog } from '@/components/expenses/AddExpenseDialog';
 import { useUserSettings } from '@/hooks/useUserSettings';
 import { useTheme } from '@/hooks/useTheme';
+import { getQuickExpenseInitialValues } from '@/utils/quickExpense';
 
 export function AppLayout() {
   useTheme();
   const [isQuickExpenseOpen, setIsQuickExpenseOpen] = useState(false);
   const { favoritePaymentMethod } = useUserSettings();
 
-  const quickExpenseInitialValues = {
-    name: 'Gasto',
-    category: 'Quick',
-    paymentType: favoritePaymentMethod?.type ?? 'debit',
-    accountId: favoritePaymentMethod?.type === 'debit' ? favoritePaymentMethod.accountId : '',
-    creditCardId: favoritePaymentMethod?.type === 'credit' ? favoritePaymentMethod.creditCardId : '',
-  };
+  const quickExpenseInitialValues = getQuickExpenseInitialValues(favoritePaymentMethod);
 
   return (
     <div className="flex h-screen bg-background">

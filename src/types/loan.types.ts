@@ -10,7 +10,7 @@ export interface Loan {
   amount: number;
   remainingAmount: number;
   currency: string;
-  accountId: string;
+  accountId: string | null;
   description: string | null;
   clabe: string | null;
   date: Timestamp;
@@ -31,12 +31,22 @@ export interface LoanPayment {
   createdAt: Timestamp;
 }
 
+export interface LoanAddition {
+  id: string;
+  loanId: string;
+  userId: string;
+  amount: number;
+  date: Timestamp;
+  description: string | null;
+  createdAt: Timestamp;
+}
+
 export interface CreateLoanData {
   direction: LoanDirection;
   personName: string;
   amount: number;
   currency: string;
-  accountId: string;
+  accountId?: string | null;
   description?: string | null;
   clabe?: string | null;
   date: Date;
@@ -58,4 +68,10 @@ export interface RecordPaymentData {
   amount: number;
   date: Date;
   note?: string | null;
+}
+
+export interface RecordLoanAdditionData {
+  amount: number;
+  date: Date;
+  description?: string | null;
 }

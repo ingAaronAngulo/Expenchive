@@ -7,11 +7,12 @@ import {
   Timestamp,
 } from 'firebase/firestore';
 import { db } from '@/config/firebase';
-import type { CreateLoanData, RecordPaymentData, UpdateLoanData } from '@/types';
-import { createLoanSchema, recordPaymentSchema } from '@/schemas';
+import type { CreateLoanData, RecordLoanAdditionData, RecordPaymentData, UpdateLoanData } from '@/types';
+import { createLoanSchema, recordLoanAdditionSchema, recordPaymentSchema } from '@/schemas';
 
 const LOANS_COLLECTION = 'loans';
 const PAYMENTS_COLLECTION = 'loanPayments';
+const ADDITIONS_COLLECTION = 'loanAdditions';
 const ACCOUNTS_COLLECTION = 'accounts';
 
 export async function createLoan(userId: string, data: CreateLoanData): Promise<string> {
@@ -22,16 +23,10 @@ export async function createLoan(userId: string, data: CreateLoanData): Promise<
   });
 
   return runTransaction(db, async (transaction) => {
-    const accountRef = doc(db, ACCOUNTS_COLLECTION, validated.accountId);
-    const accountSnap = await transaction.get(accountRef);
+    const accountRef = validated.accountId ? doc(db, ACCOUNTS_COLLECTION, validated.accountId) : null;
+    const accountSnap = accountRef ? await transaction.get(accountRef) : null;
 
-    if (!accountSnap.exists()) throw new Error('Account not found');
-
-    const currentBalance = accountSnap.data().balance as number;
-    const newBalance =
-      validated.direction === 'lent'
-        ? currentBalance - validated.amount
-        : currentBalance + validated.amount;
+    if (accountSnap && !accountSnap.exists()) throw new Error('Account not found');
 
     const loanRef = doc(collection(db, LOANS_COLLECTION));
     transaction.set(loanRef, {
@@ -52,7 +47,13 @@ export async function createLoan(userId: string, data: CreateLoanData): Promise<
       updatedAt: serverTimestamp(),
     });
 
-    transaction.update(accountRef, { balance: newBalance, updatedAt: serverTimestamp() });
+    if (accountRef && accountSnap) {
+      const currentBalance = accountSnap.data().balance as number;
+      const newBalance = validated.direction === 'lent'
+        ? currentBalance - validated.amount
+        : currentBalance + validated.amount;
+      transaction.update(accountRef, { balance: newBalance, updatedAt: serverTimestamp() });
+    }
 
     return loanRef.id;
   });
@@ -100,6 +101,53 @@ export async function recordPayment(
   });
 }
 
+export async function recordLoanAddition(
+  userId: string,
+  loanId: string,
+  data: RecordLoanAdditionData
+): Promise<void> {
+  const validated = recordLoanAdditionSchema.parse({
+    ...data,
+    description: data.description ?? null,
+  });
+
+  await runTransaction(db, async (transaction) => {
+    const loanRef = doc(db, LOANS_COLLECTION, loanId);
+    const loanSnap = await transaction.get(loanRef);
+
+    if (!loanSnap.exists()) throw new Error('Loan not found');
+
+    const loan = loanSnap.data();
+    const accountRef = loan.accountId ? doc(db, ACCOUNTS_COLLECTION, loan.accountId) : null;
+    const accountSnap = accountRef ? await transaction.get(accountRef) : null;
+
+    if (accountSnap && !accountSnap.exists()) throw new Error('Account not found');
+    const additionRef = doc(collection(db, ADDITIONS_COLLECTION));
+
+    transaction.set(additionRef, {
+      loanId,
+      userId,
+      amount: validated.amount,
+      date: Timestamp.fromDate(validated.date),
+      description: validated.description ?? null,
+      createdAt: serverTimestamp(),
+    });
+    if (accountRef && accountSnap) {
+      const currentBalance = accountSnap.data().balance as number;
+      const newBalance = loan.direction === 'lent'
+        ? currentBalance - validated.amount
+        : currentBalance + validated.amount;
+      transaction.update(accountRef, { balance: newBalance, updatedAt: serverTimestamp() });
+    }
+    transaction.update(loanRef, {
+      amount: loan.amount + validated.amount,
+      remainingAmount: loan.remainingAmount + validated.amount,
+      isPaid: false,
+      updatedAt: serverTimestamp(),
+    });
+  });
+}
+
 export async function updateLoan(loanId: string, data: UpdateLoanData): Promise<void> {
   await runTransaction(db, async (transaction) => {
     const loanRef = doc(db, LOANS_COLLECTION, loanId);
@@ -111,20 +159,20 @@ export async function updateLoan(loanId: string, data: UpdateLoanData): Promise<
     const amountDiff = data.amount - loanData.amount;
 
     if (amountDiff !== 0) {
-      const accountRef = doc(db, ACCOUNTS_COLLECTION, loanData.accountId);
-      const accountSnap = await transaction.get(accountRef);
+      const accountRef = loanData.accountId ? doc(db, ACCOUNTS_COLLECTION, loanData.accountId) : null;
+      const accountSnap = accountRef ? await transaction.get(accountRef) : null;
 
-      if (!accountSnap.exists()) throw new Error('Account not found');
-
-      const currentBalance = accountSnap.data().balance as number;
-      const newBalance =
-        loanData.direction === 'lent'
-          ? currentBalance - amountDiff
-          : currentBalance + amountDiff;
+      if (accountSnap && !accountSnap.exists()) throw new Error('Account not found');
 
       const newRemainingAmount = Math.max(0, loanData.remainingAmount + amountDiff);
 
-      transaction.update(accountRef, { balance: newBalance, updatedAt: serverTimestamp() });
+      if (accountRef && accountSnap) {
+        const currentBalance = accountSnap.data().balance as number;
+        const newBalance = loanData.direction === 'lent'
+          ? currentBalance - amountDiff
+          : currentBalance + amountDiff;
+        transaction.update(accountRef, { balance: newBalance, updatedAt: serverTimestamp() });
+      }
       transaction.update(loanRef, {
         personName: data.personName,
         amount: data.amount,
@@ -166,10 +214,10 @@ export async function deleteLoan(loanId: string): Promise<void> {
     const loanData = loanSnap.data();
 
     if (!loanData.isPaid) {
-      const accountRef = doc(db, ACCOUNTS_COLLECTION, loanData.accountId);
-      const accountSnap = await transaction.get(accountRef);
+      const accountRef = loanData.accountId ? doc(db, ACCOUNTS_COLLECTION, loanData.accountId) : null;
+      const accountSnap = accountRef ? await transaction.get(accountRef) : null;
 
-      if (accountSnap.exists()) {
+      if (accountRef && accountSnap?.exists()) {
         const currentBalance = accountSnap.data().balance as number;
         // Reverse the original effect
         const newBalance =

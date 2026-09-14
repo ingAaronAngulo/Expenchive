@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MoreVertical, Trash2, CreditCard, CheckCircle2, Pencil } from 'lucide-react';
+import { MoreVertical, Trash2, CreditCard, CheckCircle2, Pencil, History, Plus } from 'lucide-react';
 import { deleteLoan, toggleLoanDashboard } from '@/services/loans.service';
 import { formatCurrency, formatDate } from '@/utils/formatters';
 import type { Loan } from '@/types';
@@ -15,17 +15,25 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { RecordPaymentDialog } from './RecordPaymentDialog';
 import { EditLoanDialog } from './EditLoanDialog';
+import { LoanRecordsDialog } from './LoanRecordsDialog';
+import { RecordLoanAdditionDialog } from './RecordLoanAdditionDialog';
+import { useTranslation } from 'react-i18next';
 
 interface LoansListProps {
   loans: Loan[];
 }
 
 export function LoansList({ loans }: LoansListProps) {
+  const { t } = useTranslation();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null);
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const [editingLoan, setEditingLoan] = useState<Loan | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [recordsLoan, setRecordsLoan] = useState<Loan | null>(null);
+  const [isRecordsDialogOpen, setIsRecordsDialogOpen] = useState(false);
+  const [additionLoan, setAdditionLoan] = useState<Loan | null>(null);
+  const [isAdditionDialogOpen, setIsAdditionDialogOpen] = useState(false);
 
   const handleDelete = async (loan: Loan) => {
     if (!confirm(`Are you sure you want to delete this loan with ${loan.personName}?`)) return;
@@ -57,6 +65,16 @@ export function LoansList({ loans }: LoansListProps) {
   const handleEdit = (loan: Loan) => {
     setEditingLoan(loan);
     setIsEditDialogOpen(true);
+  };
+
+  const handleViewRecords = (loan: Loan) => {
+    setRecordsLoan(loan);
+    setIsRecordsDialogOpen(true);
+  };
+
+  const handleAddAmount = (loan: Loan) => {
+    setAdditionLoan(loan);
+    setIsAdditionDialogOpen(true);
   };
 
   return (
@@ -98,6 +116,14 @@ export function LoansList({ loans }: LoansListProps) {
                     <DropdownMenuItem onClick={() => handleEdit(loan)}>
                       <Pencil className="mr-2 h-4 w-4" />
                       Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleViewRecords(loan)}>
+                      <History className="mr-2 h-4 w-4" />
+                      {t('loanDialog.viewRecords')}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleAddAmount(loan)}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      {t('loanDialog.addAmount')}
                     </DropdownMenuItem>
                     {!loan.isPaid && (
                       <DropdownMenuItem onClick={() => handleRecordPayment(loan)}>
@@ -176,6 +202,25 @@ export function LoansList({ loans }: LoansListProps) {
         onOpenChange={(open) => {
           setIsEditDialogOpen(open);
           if (!open) setEditingLoan(null);
+        }}
+      />
+
+      <LoanRecordsDialog
+        key={recordsLoan?.id ?? 'no-loan'}
+        loan={recordsLoan}
+        open={isRecordsDialogOpen}
+        onOpenChange={(open) => {
+          setIsRecordsDialogOpen(open);
+          if (!open) setRecordsLoan(null);
+        }}
+      />
+
+      <RecordLoanAdditionDialog
+        loan={additionLoan}
+        open={isAdditionDialogOpen}
+        onOpenChange={(open) => {
+          setIsAdditionDialogOpen(open);
+          if (!open) setAdditionLoan(null);
         }}
       />
     </>

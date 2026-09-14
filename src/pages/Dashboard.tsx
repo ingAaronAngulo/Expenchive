@@ -12,6 +12,7 @@ import { createSnapshot } from '@/services/snapshots.service';
 import { AddExpenseDialog } from '@/components/expenses/AddExpenseDialog';
 import { Button } from '@/components/ui/button';
 import { useUserSettings } from '@/hooks/useUserSettings';
+import { getQuickExpenseInitialValues } from '@/utils/quickExpense';
 import { Snapshots } from '@/pages/Snapshots';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
@@ -54,13 +55,7 @@ export function Dashboard() {
     year: 'numeric',
   });
 
-  const quickExpenseInitialValues = {
-    name: 'Gasto',
-    category: 'Quick',
-    paymentType: favoritePaymentMethod?.type ?? 'debit',
-    accountId: favoritePaymentMethod?.type === 'debit' ? favoritePaymentMethod.accountId : '',
-    creditCardId: favoritePaymentMethod?.type === 'credit' ? favoritePaymentMethod.creditCardId : '',
-  };
+  const quickExpenseInitialValues = getQuickExpenseInitialValues(favoritePaymentMethod);
 
   return (
     <div className="space-y-4">

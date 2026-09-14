@@ -5,7 +5,7 @@ export const createLoanSchema = z.object({
   personName: z.string().min(1, 'Person name is required').max(100),
   amount: z.number().positive('Amount must be positive').finite(),
   currency: z.string().min(1),
-  accountId: z.string().min(1, 'Account is required'),
+  accountId: z.string().min(1).nullable().optional(),
   description: z.string().nullable().optional(),
   clabe: z.string()
     .regex(/^\d{18}$/, 'CLABE must be exactly 18 digits')
@@ -22,5 +22,12 @@ export const recordPaymentSchema = z.object({
   note: z.string().nullable().optional(),
 });
 
+export const recordLoanAdditionSchema = z.object({
+  amount: z.number().positive('Amount must be positive').finite(),
+  date: z.date(),
+  description: z.string().nullable().optional(),
+});
+
 export type CreateLoanInput = z.infer<typeof createLoanSchema>;
 export type RecordPaymentInput = z.infer<typeof recordPaymentSchema>;
+export type RecordLoanAdditionInput = z.infer<typeof recordLoanAdditionSchema>;
