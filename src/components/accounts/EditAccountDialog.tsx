@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { updateAccount } from '@/services/accounts.service';
-import { ACCOUNT_TYPES } from '@/utils/constants';
+import { ACCOUNT_TYPES, DEFAULT_PAYMENT_SOURCE_COLOR } from '@/utils/constants';
 import type { Account } from '@/types';
 import {
   Dialog,
@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ErrorMessage } from '@/components/common/ErrorMessage';
+import { ColorSelector } from '@/components/common/ColorSelector';
 import { useTranslation } from 'react-i18next';
 
 interface EditAccountDialogProps {
@@ -40,6 +41,7 @@ export function EditAccountDialog({ open, onOpenChange, account }: EditAccountDi
   const accountSchema = z.object({
     name: z.string().min(1, t('accountDialog.errors.nameRequired')),
     type: z.enum(['checking', 'savings', 'cash', 'other']),
+    color: z.string(),
     balance: z.string().refine((val) => !isNaN(Number(val)) && Number(val) >= 0, {
       message: t('accountDialog.errors.balancePositive'),
     }),
@@ -68,11 +70,13 @@ export function EditAccountDialog({ open, onOpenChange, account }: EditAccountDi
   });
 
   const accountType = watch('type');
+  const color = watch('color');
 
   useEffect(() => {
     if (account) {
       setValue('name', account.name);
       setValue('type', account.type);
+      setValue('color', account.color || DEFAULT_PAYMENT_SOURCE_COLOR);
       setValue('balance', account.balance.toString());
       setValue('lastFourDigits', account.lastFourDigits || '');
       setValue('clabe', account.clabe || '');
@@ -88,14 +92,15 @@ export function EditAccountDialog({ open, onOpenChange, account }: EditAccountDi
       await updateAccount(account.id, {
         name: data.name,
         type: data.type,
+        color: data.color,
         balance: Number(data.balance),
         lastFourDigits: data.lastFourDigits || null,
         clabe: data.clabe || null,
         annualReturn: data.annualReturn ? Number(data.annualReturn) : null,
       });
       onOpenChange(false);
-    } catch (err: any) {
-      setError(err.message || t('accountDialog.errors.failedUpdate'));
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : t('accountDialog.errors.failedUpdate'));
     } finally {
       setLoading(false);
     }
@@ -108,7 +113,7 @@ export function EditAccountDialog({ open, onOpenChange, account }: EditAccountDi
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{t('accountDialog.editTitle')}</DialogTitle>
           <DialogDescription>{t('accountDialog.editDescription')}</DialogDescription>
@@ -125,7 +130,7 @@ export function EditAccountDialog({ open, onOpenChange, account }: EditAccountDi
 
           <div className="space-y-2">
             <Label htmlFor="type">{t('accountDialog.accountType')}</Label>
-            <Select value={accountType} onValueChange={(value) => setValue('type', value as any)}>
+            <Select value={accountType} onValueChange={(value) => setValue('type', value as AccountFormData['type'])}>
               <SelectTrigger>
                 <SelectValue placeholder={t('accountDialog.selectType')} />
               </SelectTrigger>
@@ -136,6 +141,11 @@ export function EditAccountDialog({ open, onOpenChange, account }: EditAccountDi
               </SelectContent>
             </Select>
             {errors.type && <p className="text-sm text-red-600">{errors.type.message}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label>{t('form.color')}</Label>
+            <ColorSelector value={color || DEFAULT_PAYMENT_SOURCE_COLOR} onChange={(value) => setValue('color', value)} />
           </div>
 
           <div className="space-y-2">

@@ -11,7 +11,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/config/firebase';
 import type { Account, CreateAccountData, UpdateAccountData } from '@/types';
-import { DEFAULT_CURRENCY } from '@/utils/constants';
+import { DEFAULT_CURRENCY, DEFAULT_PAYMENT_SOURCE_COLOR } from '@/utils/constants';
 import { createAccountSchema, updateAccountSchema } from '@/schemas';
 
 const COLLECTION_NAME = 'accounts';
@@ -32,6 +32,9 @@ export async function createAccount(
     type: validatedData.type,
     balance: validatedData.balance,
     currency: validatedData.currency || DEFAULT_CURRENCY,
+    color: validatedData.color || DEFAULT_PAYMENT_SOURCE_COLOR,
+    lastFourDigits: validatedData.lastFourDigits ?? null,
+    clabe: validatedData.clabe ?? null,
     annualReturn: validatedData.annualReturn ?? null,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),

@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { updateCreditCard } from '@/services/credit-cards.service';
+import { DEFAULT_PAYMENT_SOURCE_COLOR } from '@/utils/constants';
 import type { CreditCard } from '@/types';
 import {
   Dialog,
@@ -16,6 +17,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ErrorMessage } from '@/components/common/ErrorMessage';
+import { ColorSelector } from '@/components/common/ColorSelector';
 import { useTranslation } from 'react-i18next';
 
 interface EditCreditCardDialogProps {
@@ -31,6 +33,7 @@ export function EditCreditCardDialog({ open, onOpenChange, creditCard }: EditCre
 
   const creditCardSchema = z.object({
     name: z.string().min(1, t('creditCardDialog.errors.cardRequired')),
+    color: z.string(),
     creditLimit: z.string().refine((val) => val === '' || (!isNaN(Number(val)) && Number(val) >= 0), {
       message: t('creditCardDialog.errors.creditLimit'),
     }),
@@ -59,14 +62,18 @@ export function EditCreditCardDialog({ open, onOpenChange, creditCard }: EditCre
     handleSubmit,
     formState: { errors },
     setValue,
+    watch,
     reset,
   } = useForm<CreditCardFormData>({
     resolver: zodResolver(creditCardSchema),
   });
 
+  const color = watch('color');
+
   useEffect(() => {
     if (creditCard) {
       setValue('name', creditCard.name);
+      setValue('color', creditCard.color || DEFAULT_PAYMENT_SOURCE_COLOR);
       setValue('creditLimit', creditCard.creditLimit?.toString() || '');
       setValue('currentBalance', creditCard.currentBalance?.toString() || '0');
       setValue('lastFourDigits', creditCard.lastFourDigits || '');
@@ -84,6 +91,7 @@ export function EditCreditCardDialog({ open, onOpenChange, creditCard }: EditCre
       setLoading(true);
       await updateCreditCard(creditCard.id, {
         name: data.name,
+        color: data.color,
         creditLimit: data.creditLimit ? Number(data.creditLimit) : null,
         currentBalance: data.currentBalance ? Number(data.currentBalance) : 0,
         lastFourDigits: data.lastFourDigits || null,
@@ -93,8 +101,8 @@ export function EditCreditCardDialog({ open, onOpenChange, creditCard }: EditCre
         interestRate: data.interestRate ? Number(data.interestRate) : null,
       });
       onOpenChange(false);
-    } catch (err: any) {
-      setError(err.message || t('creditCardDialog.errors.failedUpdate'));
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : t('creditCardDialog.errors.failedUpdate'));
     } finally {
       setLoading(false);
     }
@@ -120,6 +128,11 @@ export function EditCreditCardDialog({ open, onOpenChange, creditCard }: EditCre
             <Label htmlFor="name">{t('creditCardDialog.cardName')}</Label>
             <Input id="name" placeholder="e.g., Chase Sapphire" {...register('name')} />
             {errors.name && <p className="text-sm text-red-600">{errors.name.message}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label>{t('form.color')}</Label>
+            <ColorSelector value={color || DEFAULT_PAYMENT_SOURCE_COLOR} onChange={(value) => setValue('color', value)} />
           </div>
 
           <div className="space-y-2">

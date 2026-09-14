@@ -6,8 +6,10 @@ import { z } from 'zod';
 
 export const createCreditCardSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100, 'Name is too long'),
+  color: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Invalid color').optional(),
   lastFourDigits: z.string()
     .regex(/^\d{4}$/, 'Must be exactly 4 digits')
+    .nullable()
     .optional(),
   clabe: z.string()
     .regex(/^\d{18}$/, 'CLABE must be exactly 18 digits')
@@ -15,7 +17,9 @@ export const createCreditCardSchema = z.object({
     .optional(),
   creditLimit: z.number()
     .positive('Credit limit must be positive')
-    .finite('Credit limit must be a valid number'),
+    .finite('Credit limit must be a valid number')
+    .nullable()
+    .optional(),
   currentBalance: z.number()
     .min(0, 'Current balance cannot be negative')
     .finite('Current balance must be a valid number')
@@ -40,7 +44,7 @@ export const createCreditCardSchema = z.object({
 }).refine(
   (data) => {
     // Current balance should not exceed credit limit
-    if (data.creditLimit && data.currentBalance > data.creditLimit) {
+    if (data.creditLimit != null && data.currentBalance > data.creditLimit) {
       return false;
     }
     return true;
@@ -52,9 +56,10 @@ export const createCreditCardSchema = z.object({
 
 export const updateCreditCardSchema = z.object({
   name: z.string().min(1).max(100).optional(),
-  lastFourDigits: z.string().regex(/^\d{4}$/).optional(),
+  color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+  lastFourDigits: z.string().regex(/^\d{4}$/).nullable().optional(),
   clabe: z.string().regex(/^\d{18}$/).nullable().optional(),
-  creditLimit: z.number().positive().finite().optional(),
+  creditLimit: z.number().positive().finite().nullable().optional(),
   currentBalance: z.number().min(0).finite().optional(),
   interestRate: z.number().min(0).max(100).nullable().optional(),
   billingCycleDay: z.number().int().min(1).max(31).nullable().optional(),

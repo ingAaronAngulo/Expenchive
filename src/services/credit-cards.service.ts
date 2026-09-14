@@ -13,6 +13,7 @@ import {
 import { db } from '@/config/firebase';
 import type { CreditCard, CreateCreditCardData, UpdateCreditCardData } from '@/types';
 import { createCreditCardSchema, updateCreditCardSchema } from '@/schemas';
+import { DEFAULT_PAYMENT_SOURCE_COLOR } from '@/utils/constants';
 
 const COLLECTION_NAME = 'creditCards';
 
@@ -29,9 +30,11 @@ export async function createCreditCard(
   const cardData = {
     userId,
     name: validatedData.name,
+    color: validatedData.color || DEFAULT_PAYMENT_SOURCE_COLOR,
     creditLimit: validatedData.creditLimit,
     currentBalance: validatedData.currentBalance,
     lastFourDigits: validatedData.lastFourDigits ?? null,
+    clabe: validatedData.clabe ?? null,
     interestRate: validatedData.interestRate ?? null,
     billingCycleDay: validatedData.billingCycleDay ?? null,
     paymentDueDay: validatedData.paymentDueDay ?? null,

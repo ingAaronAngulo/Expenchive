@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useAuth } from '@/hooks/useAuth';
 import { createAccount } from '@/services/accounts.service';
-import { ACCOUNT_TYPES, DEFAULT_CURRENCY } from '@/utils/constants';
+import { ACCOUNT_TYPES, DEFAULT_CURRENCY, DEFAULT_PAYMENT_SOURCE_COLOR } from '@/utils/constants';
 import {
   Dialog,
   DialogContent,
@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ErrorMessage } from '@/components/common/ErrorMessage';
+import { ColorSelector } from '@/components/common/ColorSelector';
 import { useTranslation } from 'react-i18next';
 
 interface AddAccountDialogProps {
@@ -40,6 +41,7 @@ export function AddAccountDialog({ open, onOpenChange }: AddAccountDialogProps) 
   const accountSchema = z.object({
     name: z.string().min(1, t('accountDialog.errors.nameRequired')),
     type: z.enum(['checking', 'savings', 'cash', 'other']),
+    color: z.string(),
     balance: z.string().refine((val) => !isNaN(Number(val)) && Number(val) >= 0, {
       message: t('accountDialog.errors.balancePositive'),
     }),
@@ -65,10 +67,19 @@ export function AddAccountDialog({ open, onOpenChange }: AddAccountDialogProps) 
     reset,
   } = useForm<AccountFormData>({
     resolver: zodResolver(accountSchema),
-    defaultValues: { name: '', type: 'checking', balance: '0', lastFourDigits: '', clabe: '', annualReturn: '' },
+    defaultValues: {
+      name: '',
+      type: 'checking',
+      color: DEFAULT_PAYMENT_SOURCE_COLOR,
+      balance: '0',
+      lastFourDigits: '',
+      clabe: '',
+      annualReturn: '',
+    },
   });
 
   const accountType = watch('type');
+  const color = watch('color');
 
   const onSubmit = async (data: AccountFormData) => {
     if (!user) return;
@@ -78,6 +89,7 @@ export function AddAccountDialog({ open, onOpenChange }: AddAccountDialogProps) 
       await createAccount(user.uid, {
         name: data.name,
         type: data.type,
+        color: data.color,
         balance: Number(data.balance),
         currency: DEFAULT_CURRENCY,
         lastFourDigits: data.lastFourDigits || null,
@@ -86,8 +98,8 @@ export function AddAccountDialog({ open, onOpenChange }: AddAccountDialogProps) 
       });
       reset();
       onOpenChange(false);
-    } catch (err: any) {
-      setError(err.message || t('accountDialog.errors.failedCreate'));
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : t('accountDialog.errors.failedCreate'));
     } finally {
       setLoading(false);
     }
@@ -100,7 +112,7 @@ export function AddAccountDialog({ open, onOpenChange }: AddAccountDialogProps) 
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{t('accountDialog.addTitle')}</DialogTitle>
           <DialogDescription>{t('accountDialog.addDescription')}</DialogDescription>
@@ -117,7 +129,7 @@ export function AddAccountDialog({ open, onOpenChange }: AddAccountDialogProps) 
 
           <div className="space-y-2">
             <Label htmlFor="type">{t('accountDialog.accountType')}</Label>
-            <Select value={accountType} onValueChange={(value) => setValue('type', value as any)}>
+            <Select value={accountType} onValueChange={(value) => setValue('type', value as AccountFormData['type'])}>
               <SelectTrigger>
                 <SelectValue placeholder={t('accountDialog.selectType')} />
               </SelectTrigger>
@@ -128,6 +140,11 @@ export function AddAccountDialog({ open, onOpenChange }: AddAccountDialogProps) 
               </SelectContent>
             </Select>
             {errors.type && <p className="text-sm text-red-600">{errors.type.message}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label>{t('form.color')}</Label>
+            <ColorSelector value={color} onChange={(value) => setValue('color', value)} />
           </div>
 
           <div className="space-y-2">

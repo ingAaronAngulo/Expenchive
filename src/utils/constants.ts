@@ -25,5 +25,19 @@ export const ACCOUNT_TYPES = [
   { value: 'other', label: 'Other' },
 ] as const;
 
+export const PAYMENT_SOURCE_COLORS = [
+  '#2563eb',
+  '#7c3aed',
+  '#db2777',
+  '#dc2626',
+  '#ea580c',
+  '#ca8a04',
+  '#16a34a',
+  '#0891b2',
+  '#475569',
+] as const;
+
+export const DEFAULT_PAYMENT_SOURCE_COLOR = PAYMENT_SOURCE_COLORS[0];
+
 // Currency
 export const DEFAULT_CURRENCY = 'USD';

@@ -5,12 +5,10 @@ import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
 import { Dashboard } from './pages/Dashboard';
 import { Expenses } from './pages/Expenses';
-import { CreditCards } from './pages/CreditCards';
 import { Investments } from './pages/Investments';
 import { Accounts } from './pages/Accounts';
 import { Settings } from './pages/Settings';
 import { Loans } from './pages/Loans';
-import { Snapshots } from './pages/Snapshots';
 import { useAuth } from './hooks/useAuth';
 
 function App() {
@@ -31,11 +29,11 @@ function App() {
         >
           <Route index element={<Dashboard />} />
           <Route path="expenses" element={<Expenses />} />
-          <Route path="credit-cards" element={<CreditCards />} />
+          <Route path="credit-cards" element={<Navigate to="/accounts?tab=credit" replace />} />
           <Route path="investments" element={<Investments />} />
           <Route path="accounts" element={<Accounts />} />
           <Route path="loans" element={<Loans />} />
-          <Route path="snapshots" element={<Snapshots />} />
+          <Route path="snapshots" element={<Navigate to="/?tab=historical" replace />} />
           <Route path="settings" element={<Settings />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />

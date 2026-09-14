@@ -45,6 +45,9 @@ const es = {
   },
   dashboard: {
     title: 'Inicio',
+    viewTabs: 'Vistas del panel',
+    nowTab: 'Ahora',
+    historicalTab: 'Histórico',
     saveSnapshot: 'Guardar Instantánea',
     saving: 'Guardando…',
     saved: '¡Guardado!',
@@ -91,7 +94,10 @@ const es = {
   },
   accounts: {
     title: 'Cuentas',
-    description: 'Administra tus cuentas bancarias y efectivo',
+    description: 'Administra tus cuentas de débito y tarjetas de crédito',
+    paymentTypes: 'Tipos de cuenta de pago',
+    debitTab: 'Débito',
+    creditTab: 'Crédito',
     addAccount: 'Agregar Cuenta',
     noAccounts: 'Sin cuentas aún',
     noAccountsDescription: 'Agrega tu primera cuenta bancaria o de efectivo para comenzar a rastrear tu dinero.',
@@ -162,6 +168,7 @@ const es = {
   form: {
     amount: 'Monto',
     date: 'Fecha',
+    color: 'Color',
     category: 'Categoría',
     selectCategory: 'Seleccionar categoría',
     paymentType: 'Tipo de Pago',

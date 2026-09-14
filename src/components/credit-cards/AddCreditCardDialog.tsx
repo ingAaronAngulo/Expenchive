@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useAuth } from '@/hooks/useAuth';
 import { createCreditCard } from '@/services/credit-cards.service';
+import { DEFAULT_PAYMENT_SOURCE_COLOR } from '@/utils/constants';
 import {
   Dialog,
   DialogContent,
@@ -16,6 +17,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ErrorMessage } from '@/components/common/ErrorMessage';
+import { ColorSelector } from '@/components/common/ColorSelector';
 import { useTranslation } from 'react-i18next';
 
 interface AddCreditCardDialogProps {
@@ -31,6 +33,7 @@ export function AddCreditCardDialog({ open, onOpenChange }: AddCreditCardDialogP
 
   const creditCardSchema = z.object({
     name: z.string().min(1, t('creditCardDialog.errors.cardRequired')),
+    color: z.string(),
     creditLimit: z.string().refine((val) => val === '' || (!isNaN(Number(val)) && Number(val) >= 0), {
       message: t('creditCardDialog.errors.creditLimit'),
     }),
@@ -58,11 +61,25 @@ export function AddCreditCardDialog({ open, onOpenChange }: AddCreditCardDialogP
     register,
     handleSubmit,
     formState: { errors },
+    setValue,
+    watch,
     reset,
   } = useForm<CreditCardFormData>({
     resolver: zodResolver(creditCardSchema),
-    defaultValues: { name: '', creditLimit: '', currentBalance: '', lastFourDigits: '', clabe: '', billingCycleDay: '', paymentDueDay: '', interestRate: '' },
+    defaultValues: {
+      name: '',
+      color: DEFAULT_PAYMENT_SOURCE_COLOR,
+      creditLimit: '',
+      currentBalance: '',
+      lastFourDigits: '',
+      clabe: '',
+      billingCycleDay: '',
+      paymentDueDay: '',
+      interestRate: '',
+    },
   });
+
+  const color = watch('color');
 
   const onSubmit = async (data: CreditCardFormData) => {
     if (!user) return;
@@ -71,6 +88,7 @@ export function AddCreditCardDialog({ open, onOpenChange }: AddCreditCardDialogP
       setLoading(true);
       await createCreditCard(user.uid, {
         name: data.name,
+        color: data.color,
         creditLimit: data.creditLimit ? Number(data.creditLimit) : null,
         currentBalance: data.currentBalance ? Number(data.currentBalance) : 0,
         lastFourDigits: data.lastFourDigits || null,
@@ -81,8 +99,8 @@ export function AddCreditCardDialog({ open, onOpenChange }: AddCreditCardDialogP
       });
       reset();
       onOpenChange(false);
-    } catch (err: any) {
-      setError(err.message || t('creditCardDialog.errors.failedCreate'));
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : t('creditCardDialog.errors.failedCreate'));
     } finally {
       setLoading(false);
     }
@@ -108,6 +126,11 @@ export function AddCreditCardDialog({ open, onOpenChange }: AddCreditCardDialogP
             <Label htmlFor="name">{t('creditCardDialog.cardName')}</Label>
             <Input id="name" placeholder="e.g., Chase Sapphire" {...register('name')} />
             {errors.name && <p className="text-sm text-red-600">{errors.name.message}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label>{t('form.color')}</Label>
+            <ColorSelector value={color} onChange={(value) => setValue('color', value)} />
           </div>
 
           <div className="space-y-2">

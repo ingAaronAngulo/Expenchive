@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { EditCreditCardDialog } from './EditCreditCardDialog';
 import { PayCreditCardDialog } from './PayCreditCardDialog';
+import { DEFAULT_PAYMENT_SOURCE_COLOR } from '@/utils/constants';
 
 interface CreditCardsListProps {
   creditCards: CreditCard[];
@@ -123,7 +124,11 @@ export function CreditCardsList({ creditCards }: CreditCardsListProps) {
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {creditCards.map((card) => (
-          <Card key={card.id}>
+          <Card
+            key={card.id}
+            className="overflow-hidden border-t-4"
+            style={{ borderTopColor: card.color || DEFAULT_PAYMENT_SOURCE_COLOR }}
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 {card.name}
@@ -164,7 +169,10 @@ export function CreditCardsList({ creditCards }: CreditCardsListProps) {
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-2 text-muted-foreground text-sm mb-2">
-                <CreditCardIcon className="h-4 w-4" />
+                <CreditCardIcon
+                  className="h-4 w-4"
+                  style={{ color: card.color || DEFAULT_PAYMENT_SOURCE_COLOR }}
+                />
                 <span>Credit Card</span>
               </div>
               {card.clabe && (

@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Camera, Check, Plus } from 'lucide-react';
+import { Camera, Check, History, Plus, Timer } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import { useAuth } from '@/hooks/useAuth';
 import { FinancialSummary } from '@/components/dashboard/FinancialSummary';
@@ -11,9 +12,12 @@ import { createSnapshot } from '@/services/snapshots.service';
 import { AddExpenseDialog } from '@/components/expenses/AddExpenseDialog';
 import { Button } from '@/components/ui/button';
 import { useUserSettings } from '@/hooks/useUserSettings';
+import { Snapshots } from '@/pages/Snapshots';
+import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 
 export function Dashboard() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const { summary, loading } = useFinancialSummary();
   const { user } = useAuth();
   const [saving, setSaving] = useState(false);
@@ -21,6 +25,7 @@ export function Dashboard() {
   const [isQuickExpenseOpen, setIsQuickExpenseOpen] = useState(false);
   const { favoritePaymentMethod } = useUserSettings();
   const { t, i18n } = useTranslation();
+  const activeTab = searchParams.get('tab') === 'historical' ? 'historical' : 'now';
 
   async function saveSnapshot() {
     if (!user) return;
@@ -40,14 +45,6 @@ export function Dashboard() {
     } finally {
       setSaving(false);
     }
-  }
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <LoadingSpinner size="lg" />
-      </div>
-    );
   }
 
   const today = new Date().toLocaleDateString(i18n.language, {
@@ -84,83 +81,125 @@ export function Dashboard() {
           </h1>
         </div>
 
+        {activeTab === 'now' && (
+          <button
+            onClick={saveSnapshot}
+            disabled={loading || saving || saved}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 disabled:opacity-50"
+            style={{
+              background: saved ? 'rgba(74, 222, 128, 0.08)' : 'transparent',
+              border: '1px solid',
+              borderColor: saved ? 'rgba(74, 222, 128, 0.25)' : 'hsl(var(--border))',
+              color: saved ? '#4ade80' : 'hsl(var(--muted-foreground))',
+              cursor: loading || saving || saved ? 'not-allowed' : 'pointer',
+              fontFamily: "'Instrument Sans', sans-serif",
+            }}
+          >
+            {saved ? <Check size={14} /> : <Camera size={14} />}
+            {saved ? t('dashboard.saved') : saving ? t('dashboard.saving') : t('dashboard.saveSnapshot')}
+          </button>
+        )}
+      </div>
+
+      <div className="flex border-b" role="tablist" aria-label={t('dashboard.viewTabs')}>
         <button
-          onClick={saveSnapshot}
-          disabled={saving || saved}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
-          style={{
-            background: saved ? 'rgba(74, 222, 128, 0.08)' : 'transparent',
-            border: '1px solid',
-            borderColor: saved ? 'rgba(74, 222, 128, 0.25)' : 'hsl(var(--border))',
-            color: saved ? '#4ade80' : 'hsl(var(--muted-foreground))',
-            cursor: saving || saved ? 'not-allowed' : 'pointer',
-            fontFamily: "'Instrument Sans', sans-serif",
-          }}
+          type="button"
+          role="tab"
+          aria-selected={activeTab === 'now'}
+          onClick={() => setSearchParams({ tab: 'now' })}
+          className={cn(
+            'flex items-center gap-2 border-b-2 px-5 py-3 text-sm font-medium transition-colors',
+            activeTab === 'now'
+              ? 'border-primary text-foreground'
+              : 'border-transparent text-muted-foreground hover:text-foreground'
+          )}
         >
-          {saved ? <Check size={14} /> : <Camera size={14} />}
-          {saved ? t('dashboard.saved') : saving ? t('dashboard.saving') : t('dashboard.saveSnapshot')}
+          <Timer className="h-4 w-4" />
+          {t('dashboard.nowTab')}
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === 'historical'}
+          onClick={() => setSearchParams({ tab: 'historical' })}
+          className={cn(
+            'flex items-center gap-2 border-b-2 px-5 py-3 text-sm font-medium transition-colors',
+            activeTab === 'historical'
+              ? 'border-primary text-foreground'
+              : 'border-transparent text-muted-foreground hover:text-foreground'
+          )}
+        >
+          <History className="h-4 w-4" />
+          {t('dashboard.historicalTab')}
         </button>
       </div>
 
-      {/* Hero financial summary */}
-      <FinancialSummary
-        totalMoney={summary.totalMoney}
-        totalDebt={summary.totalDebt}
-        netWorth={summary.netWorth}
-      />
+      {activeTab === 'now' && (
+        loading ? (
+          <div className="flex min-h-[400px] items-center justify-center">
+            <LoadingSpinner size="lg" />
+          </div>
+        ) : (
+          <>
+            <FinancialSummary
+              totalMoney={summary.totalMoney}
+              totalDebt={summary.totalDebt}
+              netWorth={summary.netWorth}
+            />
 
-      {/* Loans summary */}
-      {summary.hasLoansDashboard && (
-        <LoansSummaryCard
-          totalLent={summary.loansSummary.totalLent}
-          totalBorrowed={summary.loansSummary.totalBorrowed}
-        />
+            {summary.hasLoansDashboard && (
+              <LoansSummaryCard
+                totalLent={summary.loansSummary.totalLent}
+                totalBorrowed={summary.loansSummary.totalBorrowed}
+              />
+            )}
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <CategoryBreakdownChart data={summary.categoryBreakdown} />
+              <MoneyVsDebtChart
+                totalMoney={summary.totalMoney}
+                totalDebt={summary.totalDebt}
+                netWorth={summary.netWorth}
+              />
+            </div>
+
+            {summary.totalExpenses === 0 && summary.totalAccounts === 0 && (
+              <div
+                className="text-center p-12 rounded-xl"
+                style={{ background: '#08101c', border: '1px solid #1a2338' }}
+              >
+                <p
+                  className="text-lg mb-2"
+                  style={{ color: '#6b7a99', fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, fontSize: '1.5rem' }}
+                >
+                  {t('dashboard.welcome')}
+                </p>
+                <p
+                  className="text-sm"
+                  style={{ color: '#3a4f6e', fontFamily: "'Instrument Sans', sans-serif" }}
+                >
+                  {t('dashboard.welcomeDescription')}
+                </p>
+              </div>
+            )}
+          </>
+        )
       )}
 
-      {/* Charts */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <CategoryBreakdownChart data={summary.categoryBreakdown} />
-        <MoneyVsDebtChart
-          totalMoney={summary.totalMoney}
-          totalDebt={summary.totalDebt}
-          netWorth={summary.netWorth}
-        />
-      </div>
+      {activeTab === 'historical' && <Snapshots embedded />}
 
-      {/* Empty state */}
-      {summary.totalExpenses === 0 && summary.totalAccounts === 0 && (
-        <div
-          className="text-center p-12 rounded-xl"
-          style={{
-            background: '#08101c',
-            border: '1px solid #1a2338',
-          }}
+      {activeTab === 'now' && (
+        <Button
+          type="button"
+          size="icon"
+          onClick={() => setIsQuickExpenseOpen(true)}
+          className="fixed bottom-6 right-6 z-40 h-14 w-14 rounded-full shadow-lg hover:scale-105"
+          aria-label={t('dashboard.quickAddExpense')}
+          title={t('dashboard.quickAddExpense')}
         >
-          <p
-            className="text-lg mb-2"
-            style={{ color: '#6b7a99', fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, fontSize: '1.5rem' }}
-          >
-            {t('dashboard.welcome')}
-          </p>
-          <p
-            className="text-sm"
-            style={{ color: '#3a4f6e', fontFamily: "'Instrument Sans', sans-serif" }}
-          >
-            {t('dashboard.welcomeDescription')}
-          </p>
-        </div>
+          <Plus className="h-6 w-6" />
+        </Button>
       )}
-
-      <Button
-        type="button"
-        size="icon"
-        onClick={() => setIsQuickExpenseOpen(true)}
-        className="fixed bottom-6 right-6 z-40 h-14 w-14 rounded-full shadow-lg hover:scale-105"
-        aria-label={t('dashboard.quickAddExpense')}
-        title={t('dashboard.quickAddExpense')}
-      >
-        <Plus className="h-6 w-6" />
-      </Button>
 
       <AddExpenseDialog
         open={isQuickExpenseOpen}

@@ -45,6 +45,9 @@ const en = {
   },
   dashboard: {
     title: 'Dashboard',
+    viewTabs: 'Dashboard views',
+    nowTab: 'Now',
+    historicalTab: 'Historical',
     saveSnapshot: 'Save Snapshot',
     saving: 'Saving…',
     saved: 'Saved!',
@@ -91,7 +94,10 @@ const en = {
   },
   accounts: {
     title: 'Accounts',
-    description: 'Manage your bank accounts and cash',
+    description: 'Manage your debit accounts and credit cards',
+    paymentTypes: 'Payment account types',
+    debitTab: 'Debit',
+    creditTab: 'Credit',
     addAccount: 'Add Account',
     noAccounts: 'No accounts yet',
     noAccountsDescription: 'Add your first bank account or cash account to start tracking your money.',
@@ -162,6 +168,7 @@ const en = {
   form: {
     amount: 'Amount',
     date: 'Date',
+    color: 'Color',
     category: 'Category',
     selectCategory: 'Select category',
     paymentType: 'Payment Type',

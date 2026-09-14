@@ -4,6 +4,7 @@ export interface CreditCard {
   id: string;
   userId: string;
   name: string;
+  color?: string;
   creditLimit: number | null;
   currentBalance: number;
   lastFourDigits: string | null;
@@ -17,6 +18,7 @@ export interface CreditCard {
 
 export interface CreateCreditCardData {
   name: string;
+  color?: string;
   creditLimit?: number | null;
   currentBalance?: number;
   lastFourDigits?: string | null;
@@ -28,6 +30,7 @@ export interface CreateCreditCardData {
 
 export interface UpdateCreditCardData {
   name?: string;
+  color?: string;
   creditLimit?: number | null;
   currentBalance?: number;
   lastFourDigits?: string | null;

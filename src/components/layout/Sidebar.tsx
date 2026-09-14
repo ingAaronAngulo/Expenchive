@@ -2,12 +2,10 @@ import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard,
   Receipt,
-  CreditCard,
   Wallet,
   Settings,
   X,
   HandCoins,
-  Camera,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
@@ -23,10 +21,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const navigation = [
     { name: t('nav.dashboard'), href: '/', icon: LayoutDashboard },
     { name: t('nav.expenses'), href: '/expenses', icon: Receipt },
-    { name: t('nav.creditCards'), href: '/credit-cards', icon: CreditCard },
     { name: t('nav.accounts'), href: '/accounts', icon: Wallet },
     { name: t('nav.loans'), href: '/loans', icon: HandCoins },
-    { name: t('nav.snapshots'), href: '/snapshots', icon: Camera },
     { name: t('nav.settings'), href: '/settings', icon: Settings },
   ];
 

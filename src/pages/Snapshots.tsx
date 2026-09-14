@@ -156,7 +156,11 @@ function SnapshotCard({
   );
 }
 
-export function Snapshots() {
+interface SnapshotsProps {
+  embedded?: boolean;
+}
+
+export function Snapshots({ embedded = false }: SnapshotsProps) {
   const { snapshots, loading, refresh } = useSnapshots();
   const { t } = useTranslation();
 
@@ -167,20 +171,22 @@ export function Snapshots() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className={`flex items-center justify-center ${embedded ? 'min-h-[300px]' : 'min-h-[400px]'}`}>
         <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl md:text-3xl font-bold">{t('snapshots.title')}</h1>
-        <p className="text-sm md:text-base text-muted-foreground mt-1">
-          {t('snapshots.description')}
-        </p>
-      </div>
+    <div className={embedded ? 'space-y-4' : 'space-y-6'}>
+      {!embedded && (
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold">{t('snapshots.title')}</h1>
+          <p className="text-sm md:text-base text-muted-foreground mt-1">
+            {t('snapshots.description')}
+          </p>
+        </div>
+      )}
 
       {snapshots.length === 0 ? (
         <div className="flex flex-col items-center justify-center p-12 text-center text-muted-foreground border border-dashed rounded-lg">

@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { EditAccountDialog } from './EditAccountDialog';
 import { AddBalanceDialog } from './AddBalanceDialog';
+import { DEFAULT_PAYMENT_SOURCE_COLOR } from '@/utils/constants';
 
 interface AccountsListProps {
   accounts: Account[];
@@ -63,7 +64,11 @@ export function AccountsList({ accounts }: AccountsListProps) {
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {accounts.map((account) => (
-          <Card key={account.id}>
+          <Card
+            key={account.id}
+            className="overflow-hidden border-t-4"
+            style={{ borderTopColor: account.color || DEFAULT_PAYMENT_SOURCE_COLOR }}
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 {account.name}
@@ -103,7 +108,10 @@ export function AccountsList({ accounts }: AccountsListProps) {
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-2 text-muted-foreground text-sm mb-2">
-                <Wallet className="h-4 w-4" />
+                <Wallet
+                  className="h-4 w-4"
+                  style={{ color: account.color || DEFAULT_PAYMENT_SOURCE_COLOR }}
+                />
                 <span>{formatAccountType(account.type)}</span>
               </div>
               {account.clabe && (
