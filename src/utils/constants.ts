@@ -1,5 +1,6 @@
 // Expense categories organized by group
 export const EXPENSE_CATEGORIES = {
+  General: ['General'],
   Quick: ['Quick'],
   Essential: ['Food', 'Transportation', 'Housing', 'Utilities', 'Healthcare', 'Insurance'],
   Lifestyle: ['Entertainment', 'Shopping', 'Dining Out', 'Travel', 'Hobbies'],
@@ -8,6 +9,9 @@ export const EXPENSE_CATEGORIES = {
 
 // Flat list of all categories
 export const ALL_CATEGORIES = Object.values(EXPENSE_CATEGORIES).flat();
+
+export const GENERAL_CATEGORY = 'General';
+export const DEFAULT_EXPENSE_CATEGORIES = [...ALL_CATEGORIES];
 
 // Frequency types for recurring expenses
 export const FREQUENCY_OPTIONS = [

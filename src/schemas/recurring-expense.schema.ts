@@ -11,7 +11,6 @@ export const createRecurringExpenseSchema = z.object({
   frequency: z.enum(['daily', 'weekly', 'monthly', 'yearly'], {
     message: 'Invalid frequency',
   }),
-  startDate: z.union([z.date(), z.instanceof(Object)]), // Date or Firestore Timestamp
   paymentType: z.enum(['debit', 'credit'], {
     message: 'Payment type must be debit or credit',
   }),
@@ -21,7 +20,6 @@ export const createRecurringExpenseSchema = z.object({
   creditCardId: z.string().nullable().optional(),
   isInstallment: z.boolean().optional().default(false),
   installmentMonths: z.number().int().positive().nullable().optional(),
-  endDate: z.union([z.date(), z.instanceof(Object)]).nullable().optional(),
 }).refine(
   (data) => {
     // If debit payment, must have accountId

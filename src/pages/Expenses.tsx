@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Receipt, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { Plus, Receipt, ChevronLeft, ChevronRight, X, Tags } from 'lucide-react';
 import { useExpenses, type ExpenseFilter } from '@/hooks/useExpenses';
 import { useAccounts } from '@/hooks/useAccounts';
 import { useCreditCards } from '@/hooks/useCreditCards';
@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/select';
 import { ExpensesList } from '@/components/expenses/ExpensesList';
 import { AddExpenseDialog } from '@/components/expenses/AddExpenseDialog';
+import { ManageCategoriesDialog } from '@/components/expenses/ManageCategoriesDialog';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { ErrorMessage } from '@/components/common/ErrorMessage';
 import { EmptyState } from '@/components/common/EmptyState';
@@ -30,6 +31,7 @@ export function Expenses({ embedded = false }: ExpensesProps) {
   const { accounts } = useAccounts();
   const { creditCards } = useCreditCards();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isManageCategoriesOpen, setIsManageCategoriesOpen] = useState(false);
   const { favoritePaymentMethod } = useUserSettings();
   const { t } = useTranslation();
   const quickExpenseInitialValues = getQuickExpenseInitialValues(favoritePaymentMethod);
@@ -76,10 +78,20 @@ export function Expenses({ embedded = false }: ExpensesProps) {
             </p>
           </div>
         )}
-        <Button onClick={() => setIsAddDialogOpen(true)} className="w-full sm:w-auto">
-          <Plus className="mr-2 h-4 w-4" />
-          {t('expenses.addExpense')}
-        </Button>
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+          <Button
+            variant="outline"
+            onClick={() => setIsManageCategoriesOpen(true)}
+            className="w-full sm:w-auto"
+          >
+            <Tags className="mr-2 h-4 w-4" />
+            {t('expenses.manageCategories')}
+          </Button>
+          <Button onClick={() => setIsAddDialogOpen(true)} className="w-full sm:w-auto">
+            <Plus className="mr-2 h-4 w-4" />
+            {t('expenses.addExpense')}
+          </Button>
+        </div>
       </div>
 
       {/* Filter UI */}
@@ -178,6 +190,11 @@ export function Expenses({ embedded = false }: ExpensesProps) {
         onOpenChange={handleDialogClose}
         initialValues={quickExpenseInitialValues}
         autoFocusAmount
+      />
+      <ManageCategoriesDialog
+        open={isManageCategoriesOpen}
+        onOpenChange={setIsManageCategoriesOpen}
+        onCategoriesChanged={pagination.resetPagination}
       />
     </div>
   );

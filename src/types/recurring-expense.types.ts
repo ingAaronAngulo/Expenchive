@@ -16,10 +16,11 @@ export interface RecurringExpense {
   isInstallment: boolean;
   installmentMonths: number | null;
 
-  startDate: Timestamp;
-  nextDueDate: Timestamp;
-  endDate: Timestamp | null;
+  startDate?: Timestamp;
+  nextDueDate?: Timestamp;
+  endDate?: Timestamp | null;
   isActive: boolean;
+  manualOnly?: boolean;
 
   lastCreatedAt: Timestamp | null;
   createdAt: Timestamp;
@@ -36,8 +37,6 @@ export interface CreateRecurringExpenseData {
   creditCardId?: string | null;
   isInstallment?: boolean;
   installmentMonths?: number | null;
-  startDate: Date | Timestamp;
-  endDate?: Date | Timestamp | null;
 }
 
 export interface UpdateRecurringExpenseData {

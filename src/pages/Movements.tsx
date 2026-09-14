@@ -1,14 +1,18 @@
-import { HandCoins, Receipt } from 'lucide-react';
+import { HandCoins, Receipt, Repeat } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { Expenses } from '@/pages/Expenses';
 import { Loans } from '@/pages/Loans';
+import { RecurringExpenses } from '@/pages/RecurringExpenses';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 
 export function Movements() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { t } = useTranslation();
-  const activeTab = searchParams.get('tab') === 'loans' ? 'loans' : 'expenses';
+  const requestedTab = searchParams.get('tab');
+  const activeTab = requestedTab === 'loans' || requestedTab === 'recurring'
+    ? requestedTab
+    : 'expenses';
 
   return (
     <div className="space-y-6">
@@ -19,7 +23,7 @@ export function Movements() {
         </p>
       </div>
 
-      <div className="flex border-b" role="tablist" aria-label={t('movements.viewTabs')}>
+      <div className="flex overflow-x-auto border-b" role="tablist" aria-label={t('movements.viewTabs')}>
         <button
           type="button"
           role="tab"
@@ -38,6 +42,21 @@ export function Movements() {
         <button
           type="button"
           role="tab"
+          aria-selected={activeTab === 'recurring'}
+          onClick={() => setSearchParams({ tab: 'recurring' })}
+          className={cn(
+            'flex items-center gap-2 whitespace-nowrap border-b-2 px-5 py-3 text-sm font-medium transition-colors',
+            activeTab === 'recurring'
+              ? 'border-primary text-foreground'
+              : 'border-transparent text-muted-foreground hover:text-foreground'
+          )}
+        >
+          <Repeat className="h-4 w-4" />
+          {t('movements.recurringTab')}
+        </button>
+        <button
+          type="button"
+          role="tab"
           aria-selected={activeTab === 'loans'}
           onClick={() => setSearchParams({ tab: 'loans' })}
           className={cn(
@@ -52,7 +71,9 @@ export function Movements() {
         </button>
       </div>
 
-      {activeTab === 'expenses' ? <Expenses embedded /> : <Loans embedded />}
+      {activeTab === 'expenses' && <Expenses embedded />}
+      {activeTab === 'recurring' && <RecurringExpenses />}
+      {activeTab === 'loans' && <Loans embedded />}
     </div>
   );
 }

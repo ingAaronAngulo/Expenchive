@@ -9,10 +9,10 @@ import {
   getDocs,
   serverTimestamp,
   Timestamp,
+  writeBatch,
 } from 'firebase/firestore';
 import { db } from '@/config/firebase';
 import type { RecurringExpense, CreateRecurringExpenseData, UpdateRecurringExpenseData } from '@/types';
-import { calculateNextDueDate } from '@/utils/date';
 import { createRecurringExpenseSchema, updateRecurringExpenseSchema } from '@/schemas';
 
 const COLLECTION_NAME = 'recurringExpenses';
@@ -27,9 +27,6 @@ export async function createRecurringExpense(
   // Validate input data
   const validatedData = createRecurringExpenseSchema.parse(data);
 
-  const startDate = validatedData.startDate instanceof Date ? validatedData.startDate : (validatedData.startDate as Timestamp).toDate();
-  const nextDueDate = calculateNextDueDate(startDate, validatedData.frequency);
-
   const recurringData = {
     userId,
     name: validatedData.name,
@@ -42,12 +39,9 @@ export async function createRecurringExpense(
     isInstallment: validatedData.isInstallment ?? false,
     installmentMonths: validatedData.installmentMonths ?? null,
 
-    startDate: Timestamp.fromDate(startDate),
-    nextDueDate: Timestamp.fromDate(nextDueDate),
-    endDate: validatedData.endDate
-      ? (validatedData.endDate instanceof Date ? Timestamp.fromDate(validatedData.endDate) : validatedData.endDate)
-      : null,
-    isActive: true,
+    // Manual templates must never be picked up by older deployed schedulers.
+    isActive: false,
+    manualOnly: true,
 
     lastCreatedAt: null,
     createdAt: serverTimestamp(),
@@ -68,7 +62,7 @@ export async function updateRecurringExpense(
   // Validate input data
   const validatedData = updateRecurringExpenseSchema.parse(data);
 
-  const updateData: any = {
+  const updateData: Record<string, unknown> = {
     ...validatedData,
     updatedAt: serverTimestamp(),
   };
@@ -126,13 +120,25 @@ export async function getUserRecurringExpenses(userId: string): Promise<Recurrin
 /**
  * Toggle recurring expense active status
  */
-export async function toggleRecurringExpense(
-  recurringId: string,
-  isActive: boolean
-): Promise<void> {
-  const recurringRef = doc(db, COLLECTION_NAME, recurringId);
-  await updateDoc(recurringRef, {
-    isActive,
-    updatedAt: serverTimestamp(),
+export async function disableAutomaticRecurringExpenses(userId: string): Promise<void> {
+  const snapshot = await getDocs(query(
+    collection(db, COLLECTION_NAME),
+    where('userId', '==', userId)
+  ));
+  const automaticDocuments = snapshot.docs.filter((document) => {
+    const data = document.data();
+    return data.isActive !== false || data.manualOnly !== true;
   });
+
+  for (let start = 0; start < automaticDocuments.length; start += 450) {
+    const batch = writeBatch(db);
+    automaticDocuments.slice(start, start + 450).forEach((document) => {
+      batch.update(document.ref, {
+        isActive: false,
+        manualOnly: true,
+        updatedAt: serverTimestamp(),
+      });
+    });
+    await batch.commit();
+  }
 }

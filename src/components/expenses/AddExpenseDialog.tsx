@@ -5,8 +5,9 @@ import * as z from 'zod';
 import { useAuth } from '@/hooks/useAuth';
 import { useAccounts } from '@/hooks/useAccounts';
 import { useCreditCards } from '@/hooks/useCreditCards';
+import { useExpenseCategories } from '@/hooks/useExpenseCategories';
 import { createExpense } from '@/services/expenses.service';
-import { ALL_CATEGORIES } from '@/utils/constants';
+import { GENERAL_CATEGORY } from '@/utils/constants';
 import {
   Dialog,
   DialogContent,
@@ -50,6 +51,7 @@ export function AddExpenseDialog({ open, onOpenChange, initialValues, autoFocusA
   const { user } = useAuth();
   const { accounts } = useAccounts();
   const { creditCards } = useCreditCards();
+  const { categories } = useExpenseCategories();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const { t } = useTranslation();
@@ -98,7 +100,7 @@ export function AddExpenseDialog({ open, onOpenChange, initialValues, autoFocusA
     defaultValues: {
       name: '',
       amount: '',
-      category: '',
+      category: GENERAL_CATEGORY,
       date: todayAsInputValue(),
       paymentType: 'debit',
       accountId: '',
@@ -120,7 +122,7 @@ export function AddExpenseDialog({ open, onOpenChange, initialValues, autoFocusA
     reset({
       name: initialValues?.name ?? '',
       amount: '',
-      category: initialValues?.category ?? '',
+      category: initialValues?.category ?? GENERAL_CATEGORY,
       date: todayAsInputValue(),
       paymentType: initialValues?.paymentType ?? 'debit',
       accountId: initialValues?.accountId ?? '',
@@ -215,7 +217,7 @@ export function AddExpenseDialog({ open, onOpenChange, initialValues, autoFocusA
                   <SelectValue placeholder={t('form.selectCategory')} />
                 </SelectTrigger>
                 <SelectContent>
-                  {ALL_CATEGORIES.map((cat) => (
+                  {categories.map((cat) => (
                     <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                   ))}
                 </SelectContent>

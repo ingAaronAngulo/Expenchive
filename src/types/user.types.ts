@@ -10,6 +10,7 @@ export interface User {
   displayName: string | null;
   photoURL: string | null;
   favoritePaymentMethod?: FavoritePaymentMethod | null;
+  expenseCategories?: string[];
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }

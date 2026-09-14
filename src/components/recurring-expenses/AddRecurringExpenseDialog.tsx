@@ -5,8 +5,9 @@ import * as z from 'zod';
 import { useAuth } from '@/hooks/useAuth';
 import { useAccounts } from '@/hooks/useAccounts';
 import { useCreditCards } from '@/hooks/useCreditCards';
+import { useExpenseCategories } from '@/hooks/useExpenseCategories';
 import { createRecurringExpense } from '@/services/recurring-expenses.service';
-import { ALL_CATEGORIES, FREQUENCY_OPTIONS } from '@/utils/constants';
+import { FREQUENCY_OPTIONS, GENERAL_CATEGORY } from '@/utils/constants';
 import {
   Dialog,
   DialogContent,
@@ -37,6 +38,7 @@ export function AddRecurringExpenseDialog({ open, onOpenChange }: AddRecurringEx
   const { user } = useAuth();
   const { accounts } = useAccounts();
   const { creditCards } = useCreditCards();
+  const { categories } = useExpenseCategories();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const { t } = useTranslation();
@@ -48,8 +50,6 @@ export function AddRecurringExpenseDialog({ open, onOpenChange }: AddRecurringEx
     }),
     category: z.string().min(1, t('recurringDialog.errors.categoryRequired')),
     frequency: z.enum(['daily', 'weekly', 'monthly', 'yearly']),
-    startDate: z.string().min(1, t('recurringDialog.errors.startDateRequired')),
-    endDate: z.string().optional(),
     paymentType: z.enum(['debit', 'credit']),
     accountId: z.string().optional(),
     creditCardId: z.string().optional(),
@@ -78,10 +78,8 @@ export function AddRecurringExpenseDialog({ open, onOpenChange }: AddRecurringEx
     defaultValues: {
       name: '',
       amount: '',
-      category: '',
+      category: GENERAL_CATEGORY,
       frequency: 'monthly',
-      startDate: new Date().toISOString().split('T')[0],
-      endDate: '',
       paymentType: 'debit',
       accountId: '',
       creditCardId: '',
@@ -115,13 +113,11 @@ export function AddRecurringExpenseDialog({ open, onOpenChange }: AddRecurringEx
           data.paymentType === 'credit' && data.isInstallment
             ? Number(data.installmentMonths)
             : null,
-        startDate: new Date(data.startDate),
-        endDate: data.endDate ? new Date(data.endDate) : null,
       });
       reset();
       onOpenChange(false);
-    } catch (err: any) {
-      setError(err.message || t('recurringDialog.errors.failedCreate'));
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : t('recurringDialog.errors.failedCreate'));
     } finally {
       setLoading(false);
     }
@@ -158,7 +154,10 @@ export function AddRecurringExpenseDialog({ open, onOpenChange }: AddRecurringEx
 
             <div className="space-y-2">
               <Label htmlFor="frequency">{t('recurringDialog.frequency')}</Label>
-              <Select value={frequency} onValueChange={(value) => setValue('frequency', value as any)}>
+              <Select
+                value={frequency}
+                onValueChange={(value) => setValue('frequency', value as RecurringExpenseFormData['frequency'])}
+              >
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {FREQUENCY_OPTIONS.map((freq) => (
@@ -175,7 +174,7 @@ export function AddRecurringExpenseDialog({ open, onOpenChange }: AddRecurringEx
                   <SelectValue placeholder={t('form.selectCategory')} />
                 </SelectTrigger>
                 <SelectContent>
-                  {ALL_CATEGORIES.map((cat) => (
+                  {categories.map((cat) => (
                     <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                   ))}
                 </SelectContent>
@@ -183,20 +182,12 @@ export function AddRecurringExpenseDialog({ open, onOpenChange }: AddRecurringEx
               {errors.category && <p className="text-sm text-red-600">{errors.category.message}</p>}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="startDate">{t('recurringDialog.startDate')}</Label>
-              <Input id="startDate" type="date" {...register('startDate')} />
-              {errors.startDate && <p className="text-sm text-red-600">{errors.startDate.message}</p>}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="endDate">{t('recurringDialog.endDate')}</Label>
-              <Input id="endDate" type="date" {...register('endDate')} />
-            </div>
-
             <div className="col-span-2 space-y-2">
               <Label htmlFor="paymentType">{t('form.paymentType')}</Label>
-              <Select value={paymentType} onValueChange={(value) => setValue('paymentType', value as any)}>
+              <Select
+                value={paymentType}
+                onValueChange={(value) => setValue('paymentType', value as RecurringExpenseFormData['paymentType'])}
+              >
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="debit">{t('form.debitPayNow')}</SelectItem>

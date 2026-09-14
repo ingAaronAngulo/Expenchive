@@ -4,8 +4,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useAccounts } from '@/hooks/useAccounts';
 import { useCreditCards } from '@/hooks/useCreditCards';
+import { useExpenseCategories } from '@/hooks/useExpenseCategories';
 import { updateExpense } from '@/services/expenses.service';
-import { ALL_CATEGORIES } from '@/utils/constants';
 import type { Expense } from '@/types';
 import {
   Dialog,
@@ -37,6 +37,7 @@ interface EditExpenseDialogProps {
 export function EditExpenseDialog({ open, onOpenChange, expense }: EditExpenseDialogProps) {
   const { accounts } = useAccounts();
   const { creditCards } = useCreditCards();
+  const { categories } = useExpenseCategories();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const { t } = useTranslation();
@@ -77,6 +78,9 @@ export function EditExpenseDialog({ open, onOpenChange, expense }: EditExpenseDi
   const category = watch('category');
   const accountId = watch('accountId');
   const creditCardId = watch('creditCardId');
+  const availableCategories = category && !categories.includes(category)
+    ? [category, ...categories]
+    : categories;
 
   useEffect(() => {
     if (expense) {
@@ -105,8 +109,8 @@ export function EditExpenseDialog({ open, onOpenChange, expense }: EditExpenseDi
         creditCardId: data.paymentType === 'credit' ? data.creditCardId : null,
       });
       onOpenChange(false);
-    } catch (err: any) {
-      setError(err.message || t('expenseDialog.failedUpdate'));
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : t('expenseDialog.failedUpdate'));
     } finally {
       setLoading(false);
     }
@@ -154,7 +158,7 @@ export function EditExpenseDialog({ open, onOpenChange, expense }: EditExpenseDi
                   <SelectValue placeholder={t('form.selectCategory')} />
                 </SelectTrigger>
                 <SelectContent>
-                  {ALL_CATEGORIES.map((cat) => (
+                  {availableCategories.map((cat) => (
                     <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                   ))}
                 </SelectContent>
@@ -164,7 +168,10 @@ export function EditExpenseDialog({ open, onOpenChange, expense }: EditExpenseDi
 
             <div className="col-span-2 space-y-2">
               <Label htmlFor="paymentType">{t('form.paymentType')}</Label>
-              <Select value={paymentType} onValueChange={(value) => setValue('paymentType', value as any)}>
+              <Select
+                value={paymentType}
+                onValueChange={(value) => setValue('paymentType', value as ExpenseFormData['paymentType'])}
+              >
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="debit">{t('form.debitPayNow')}</SelectItem>

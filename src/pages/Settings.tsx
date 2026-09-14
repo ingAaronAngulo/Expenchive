@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Check, Languages, LogOut, Moon, Plus, Repeat, Sun } from 'lucide-react';
+import { Check, Languages, LogOut, Moon, Sun } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useRecurringExpenses } from '@/hooks/useRecurringExpenses';
 import { useAccounts } from '@/hooks/useAccounts';
 import { useCreditCards } from '@/hooks/useCreditCards';
 import { useUserSettings } from '@/hooks/useUserSettings';
@@ -17,11 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { RecurringExpensesList } from '@/components/recurring-expenses/RecurringExpensesList';
-import { AddRecurringExpenseDialog } from '@/components/recurring-expenses/AddRecurringExpenseDialog';
-import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { ErrorMessage } from '@/components/common/ErrorMessage';
-import { EmptyState } from '@/components/common/EmptyState';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from 'react-i18next';
@@ -30,11 +25,9 @@ export function Settings() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const { recurringExpenses, loading, error } = useRecurringExpenses();
   const { accounts } = useAccounts();
   const { creditCards } = useCreditCards();
   const { favoritePaymentMethod, loading: settingsLoading } = useUserSettings();
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [favoritePaymentType, setFavoritePaymentType] = useState<'debit' | 'credit'>('debit');
   const [favoriteAccountId, setFavoriteAccountId] = useState('');
   const [favoriteCreditCardId, setFavoriteCreditCardId] = useState('');
@@ -267,52 +260,6 @@ export function Settings() {
         </CardContent>
       </Card>
 
-      {/* Recurring Expenses Section */}
-      <Card>
-        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <CardTitle>{t('settings.recurringExpenses')}</CardTitle>
-            <CardDescription>{t('settings.recurringExpensesDescription')}</CardDescription>
-          </div>
-          <Button onClick={() => setIsAddDialogOpen(true)} className="w-full sm:w-auto">
-            <Plus className="mr-2 h-4 w-4" />
-            {t('settings.addRecurring')}
-          </Button>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <LoadingSpinner />
-            </div>
-          ) : error ? (
-            <ErrorMessage message={error} />
-          ) : recurringExpenses.length === 0 ? (
-            <EmptyState
-              icon={Repeat}
-              title={t('settings.noRecurring')}
-              description={t('settings.noRecurringDescription')}
-              actionLabel={t('settings.addRecurring')}
-              onAction={() => setIsAddDialogOpen(true)}
-            />
-          ) : (
-            <RecurringExpensesList recurringExpenses={recurringExpenses} />
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Note about Cloud Functions */}
-      <Card className="border-primary/20 bg-primary/5">
-        <CardContent className="pt-6">
-          <p className="text-sm text-foreground">
-            <strong>{t('common.note')}:</strong> {t('settings.cloudFunctionsNote')}
-          </p>
-        </CardContent>
-      </Card>
-
-      <AddRecurringExpenseDialog
-        open={isAddDialogOpen}
-        onOpenChange={setIsAddDialogOpen}
-      />
     </div>
   );
 }
