@@ -96,11 +96,14 @@ export function adjustToPreviousBusinessDay(date: Date): Date {
 }
 
 /**
- * Get the actual payment due date for a credit card billing cycle
+ * Get the actual payment due date for a credit card billing cycle.
+ *
+ * The configured day is the bank's real deadline. Safety margins belong in
+ * reminders, so this function does not silently move weekend dates.
  * @param year - The year
  * @param month - The month (0-11, JavaScript convention)
  * @param dayOfMonth - The configured payment due day (1-31)
- * @returns The adjusted payment due date (moved to previous business day if needed)
+ * @returns The configured due date, capped to the last day of shorter months
  */
 export function getActualPaymentDueDate(
   year: number,
@@ -111,15 +114,14 @@ export function getActualPaymentDueDate(
   let dueDate = new Date(year, month, 1);
   dueDate = setDate(dueDate, Math.min(dayOfMonth, new Date(year, month + 1, 0).getDate()));
 
-  // Adjust to previous business day if needed
-  return adjustToPreviousBusinessDay(dueDate);
+  return dueDate;
 }
 
 /**
  * Get the next payment due date for a credit card
  * @param billingCycleDay - Day of month when billing cycle closes
  * @param paymentDueDay - Day of month when payment is due
- * @returns The next payment due date, adjusted for weekends/holidays
+ * @returns The next configured payment due date
  */
 export function getNextPaymentDueDate(
   _billingCycleDay: number,

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Check, Languages, LogOut, Moon, Sun } from 'lucide-react';
+import { Bell, Check, Languages, LogOut, Moon, Sun } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAccounts } from '@/hooks/useAccounts';
 import { useCreditCards } from '@/hooks/useCreditCards';
@@ -20,6 +20,13 @@ import { ErrorMessage } from '@/components/common/ErrorMessage';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from 'react-i18next';
+import {
+  canUsePaymentReminders,
+  disablePaymentReminders,
+  enablePaymentReminders,
+  paymentRemindersAreEnabled,
+  PAYMENT_REMINDER_LEAD_DAYS,
+} from '@/services/notifications.service';
 
 export function Settings() {
   const navigate = useNavigate();
@@ -35,9 +42,37 @@ export function Settings() {
   const [favoriteSaved, setFavoriteSaved] = useState(false);
   const [favoriteError, setFavoriteError] = useState<string | null>(null);
   const [signingOut, setSigningOut] = useState(false);
+  const [remindersSupported, setRemindersSupported] = useState(true);
+  const [remindersEnabled, setRemindersEnabled] = useState(paymentRemindersAreEnabled);
+  const [updatingReminders, setUpdatingReminders] = useState(false);
+  const [reminderError, setReminderError] = useState<string | null>(null);
   const { t, i18n } = useTranslation();
 
   const currentLanguage = i18n.language.startsWith('es') ? 'es' : 'en';
+
+  useEffect(() => {
+    void canUsePaymentReminders().then(setRemindersSupported);
+  }, []);
+
+  const handleToggleReminders = async () => {
+    if (!user) return;
+    setUpdatingReminders(true);
+    setReminderError(null);
+    try {
+      if (remindersEnabled) {
+        await disablePaymentReminders(user.uid);
+        setRemindersEnabled(false);
+      } else {
+        await enablePaymentReminders(user.uid);
+        setRemindersEnabled(true);
+      }
+    } catch (error) {
+      console.error('Failed to update payment reminders:', error);
+      setReminderError(t('settings.paymentRemindersError'));
+    } finally {
+      setUpdatingReminders(false);
+    }
+  };
 
   const handleSignOut = async () => {
     setSigningOut(true);
@@ -114,6 +149,45 @@ export function Settings() {
               <p className="text-sm">{user.displayName}</p>
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('settings.paymentReminders')}</CardTitle>
+          <CardDescription>
+            {t('settings.paymentRemindersDescription', { days: PAYMENT_REMINDER_LEAD_DAYS })}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
+              <Bell className="h-5 w-5 text-muted-foreground" />
+              <div>
+                <p className="text-sm font-medium">
+                  {remindersEnabled
+                    ? t('settings.paymentRemindersEnabled')
+                    : t('settings.paymentRemindersDisabled')}
+                </p>
+                {!remindersSupported && (
+                  <p className="text-xs text-muted-foreground">{t('settings.paymentRemindersUnsupported')}</p>
+                )}
+                {reminderError && <p className="text-xs text-destructive">{reminderError}</p>}
+              </div>
+            </div>
+            <Button
+              variant={remindersEnabled ? 'outline' : 'default'}
+              onClick={handleToggleReminders}
+              disabled={!remindersSupported || updatingReminders}
+              className="w-full sm:w-40"
+            >
+              {updatingReminders
+                ? t('common.saving')
+                : remindersEnabled
+                  ? t('settings.disableReminders')
+                  : t('settings.enableReminders')}
+            </Button>
+          </div>
         </CardContent>
       </Card>
 

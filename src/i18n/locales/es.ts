@@ -182,6 +182,14 @@ const es = {
     noRecurring: 'Sin gastos recurrentes',
     noRecurringDescription: 'Crea gastos recurrentes como suscripciones, renta o facturas que ocurren regularmente.',
     cloudFunctionsNote: 'Los gastos recurrentes son plantillas reutilizables que solo se registran cuando eliges agregarlos.',
+    paymentReminders: 'Recordatorios de Pago',
+    paymentRemindersDescription: 'Recibe una notificación {{days}} días antes de cada pago de tarjeta y otra el día de vencimiento.',
+    paymentRemindersEnabled: 'Los recordatorios están activos en este dispositivo.',
+    paymentRemindersDisabled: 'Los recordatorios están desactivados en este dispositivo.',
+    paymentRemindersUnsupported: 'Este navegador no admite notificaciones push. En iPhone, instala Expenchive primero.',
+    paymentRemindersError: 'No se pudieron activar los recordatorios. Revisa el permiso de notificaciones del navegador.',
+    enableReminders: 'Activar recordatorios',
+    disableReminders: 'Desactivar recordatorios',
   },
   financial: {
     totalMoney: 'Total de Dinero',
@@ -381,6 +389,8 @@ const es = {
   recurringDialog: {
     addTitle: 'Agregar Gasto Recurrente',
     addDescription: 'Crea una plantilla de gasto reutilizable que puedes registrar con un clic.',
+    editTitle: 'Editar Gasto Recurrente',
+    editDescription: 'Actualiza esta plantilla de gasto reutilizable.',
     expenseName: 'Nombre del Gasto',
     frequency: 'Frecuencia',
     startDate: 'Fecha de Inicio',
@@ -392,7 +402,9 @@ const es = {
       categoryRequired: 'La categoría es requerida',
       startDateRequired: 'La fecha de inicio es requerida',
       selectSource: 'Por favor selecciona una cuenta o tarjeta de crédito',
+      installmentMonths: 'Los gastos a meses requieren al menos 2 meses',
       failedCreate: 'Error al crear el gasto recurrente',
+      failedUpdate: 'Error al actualizar el gasto recurrente',
     },
   },
 };

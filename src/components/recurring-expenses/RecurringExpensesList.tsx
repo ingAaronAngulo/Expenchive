@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Check, MoreVertical, Receipt, Trash2 } from 'lucide-react';
+import { Check, MoreVertical, Pencil, Receipt, Trash2 } from 'lucide-react';
 import { deleteRecurringExpense } from '@/services/recurring-expenses.service';
 import { createExpense } from '@/services/expenses.service';
 import { formatCurrency } from '@/utils/formatters';
@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useTranslation } from 'react-i18next';
+import { AddRecurringExpenseDialog } from './AddRecurringExpenseDialog';
 
 interface RecurringExpensesListProps {
   recurringExpenses: RecurringExpense[];
@@ -21,6 +22,7 @@ interface RecurringExpensesListProps {
 export function RecurringExpensesList({ recurringExpenses }: RecurringExpensesListProps) {
   const [actioningId, setActioningId] = useState<string | null>(null);
   const [registeredId, setRegisteredId] = useState<string | null>(null);
+  const [editingExpense, setEditingExpense] = useState<RecurringExpense | null>(null);
   const { t } = useTranslation();
 
   const handleDelete = async (id: string) => {
@@ -120,12 +122,16 @@ export function RecurringExpensesList({ recurringExpenses }: RecurringExpensesLi
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => setEditingExpense(recurring)}>
+                      <Pencil className="mr-2 h-4 w-4" />
+                      {t('common.edit')}
+                    </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => handleDelete(recurring.id)}
                       className="text-red-600"
                     >
                       <Trash2 className="mr-2 h-4 w-4" />
-                      Delete
+                      {t('common.delete')}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -134,6 +140,11 @@ export function RecurringExpensesList({ recurringExpenses }: RecurringExpensesLi
           </CardContent>
         </Card>
       ))}
+      <AddRecurringExpenseDialog
+        open={editingExpense !== null}
+        onOpenChange={(open) => !open && setEditingExpense(null)}
+        recurringExpense={editingExpense}
+      />
     </div>
   );
 }

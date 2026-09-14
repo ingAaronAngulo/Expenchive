@@ -70,7 +70,10 @@ VITE_FIREBASE_PROJECT_ID=your_project_id
 VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
 VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
 VITE_FIREBASE_APP_ID=your_app_id
+VITE_FIREBASE_VAPID_KEY=your_web_push_certificate_public_key
 ```
+
+The VAPID public key enables credit-card payment push reminders. Create it under **Firebase Console → Project settings → Cloud Messaging → Web Push certificates**.
 
 ### 3. Deploy Firestore Rules and Indexes
 

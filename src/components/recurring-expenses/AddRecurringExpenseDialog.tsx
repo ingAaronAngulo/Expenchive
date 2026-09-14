@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -6,7 +6,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useAccounts } from '@/hooks/useAccounts';
 import { useCreditCards } from '@/hooks/useCreditCards';
 import { useExpenseCategories } from '@/hooks/useExpenseCategories';
-import { createRecurringExpense } from '@/services/recurring-expenses.service';
+import { createRecurringExpense, updateRecurringExpense } from '@/services/recurring-expenses.service';
+import type { RecurringExpense } from '@/types';
 import { FREQUENCY_OPTIONS, GENERAL_CATEGORY } from '@/utils/constants';
 import {
   Dialog,
@@ -32,9 +33,14 @@ import { useTranslation } from 'react-i18next';
 interface AddRecurringExpenseDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  recurringExpense?: RecurringExpense | null;
 }
 
-export function AddRecurringExpenseDialog({ open, onOpenChange }: AddRecurringExpenseDialogProps) {
+export function AddRecurringExpenseDialog({
+  open,
+  onOpenChange,
+  recurringExpense = null,
+}: AddRecurringExpenseDialogProps) {
   const { user } = useAuth();
   const { accounts } = useAccounts();
   const { creditCards } = useCreditCards();
@@ -62,6 +68,9 @@ export function AddRecurringExpenseDialog({ open, onOpenChange }: AddRecurringEx
       return true;
     },
     { message: t('recurringDialog.errors.selectSource'), path: ['accountId'] }
+  ).refine(
+    (data) => !data.isInstallment || Number(data.installmentMonths) >= 2,
+    { message: t('recurringDialog.errors.installmentMonths'), path: ['installmentMonths'] }
   );
 
   type RecurringExpenseFormData = z.infer<typeof recurringExpenseSchema>;
@@ -94,13 +103,41 @@ export function AddRecurringExpenseDialog({ open, onOpenChange }: AddRecurringEx
   const category = watch('category');
   const accountId = watch('accountId');
   const creditCardId = watch('creditCardId');
+  const isEditing = recurringExpense !== null;
+
+  useEffect(() => {
+    if (!open) return;
+
+    reset(recurringExpense ? {
+      name: recurringExpense.name,
+      amount: recurringExpense.amount.toString(),
+      category: recurringExpense.category,
+      frequency: recurringExpense.frequency,
+      paymentType: recurringExpense.paymentType,
+      accountId: recurringExpense.accountId ?? '',
+      creditCardId: recurringExpense.creditCardId ?? '',
+      isInstallment: recurringExpense.isInstallment,
+      installmentMonths: recurringExpense.installmentMonths?.toString() ?? '',
+    } : {
+      name: '',
+      amount: '',
+      category: GENERAL_CATEGORY,
+      frequency: 'monthly',
+      paymentType: 'debit',
+      accountId: '',
+      creditCardId: '',
+      isInstallment: false,
+      installmentMonths: '',
+    });
+    setError(null);
+  }, [open, recurringExpense, reset]);
 
   const onSubmit = async (data: RecurringExpenseFormData) => {
     if (!user) return;
     try {
       setError(null);
       setLoading(true);
-      await createRecurringExpense(user.uid, {
+      const expenseData = {
         name: data.name,
         amount: Number(data.amount),
         category: data.category,
@@ -113,11 +150,19 @@ export function AddRecurringExpenseDialog({ open, onOpenChange }: AddRecurringEx
           data.paymentType === 'credit' && data.isInstallment
             ? Number(data.installmentMonths)
             : null,
-      });
+      };
+
+      if (recurringExpense) {
+        await updateRecurringExpense(recurringExpense.id, expenseData);
+      } else {
+        await createRecurringExpense(user.uid, expenseData);
+      }
       reset();
       onOpenChange(false);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : t('recurringDialog.errors.failedCreate'));
+      setError(err instanceof Error
+        ? err.message
+        : t(isEditing ? 'recurringDialog.errors.failedUpdate' : 'recurringDialog.errors.failedCreate'));
     } finally {
       setLoading(false);
     }
@@ -132,8 +177,10 @@ export function AddRecurringExpenseDialog({ open, onOpenChange }: AddRecurringEx
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{t('recurringDialog.addTitle')}</DialogTitle>
-          <DialogDescription>{t('recurringDialog.addDescription')}</DialogDescription>
+          <DialogTitle>{t(isEditing ? 'recurringDialog.editTitle' : 'recurringDialog.addTitle')}</DialogTitle>
+          <DialogDescription>
+            {t(isEditing ? 'recurringDialog.editDescription' : 'recurringDialog.addDescription')}
+          </DialogDescription>
         </DialogHeader>
 
         {error && <ErrorMessage message={error} />}
@@ -248,7 +295,7 @@ export function AddRecurringExpenseDialog({ open, onOpenChange }: AddRecurringEx
                 {isInstallment && (
                   <div className="col-span-2 space-y-2">
                     <Label htmlFor="installmentMonths">{t('form.numberOfMonths')}</Label>
-                    <Input id="installmentMonths" type="number" min="1" max="60" placeholder="e.g., 12" {...register('installmentMonths')} />
+                    <Input id="installmentMonths" type="number" min="2" max="60" placeholder="e.g., 12" {...register('installmentMonths')} />
                     {errors.installmentMonths && <p className="text-sm text-red-600">{errors.installmentMonths.message}</p>}
                   </div>
                 )}
@@ -261,7 +308,9 @@ export function AddRecurringExpenseDialog({ open, onOpenChange }: AddRecurringEx
               {t('common.cancel')}
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? t('common.adding') : t('recurringDialog.addButton')}
+              {loading
+                ? t(isEditing ? 'common.updating' : 'common.adding')
+                : t(isEditing ? 'common.saveChanges' : 'recurringDialog.addButton')}
             </Button>
           </DialogFooter>
         </form>

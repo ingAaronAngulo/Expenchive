@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { MoreVertical, Trash2, CreditCard as CreditCardIcon, Pencil, Calendar, Clock, DollarSign, Copy, Check } from 'lucide-react';
+import { MoreVertical, Trash2, CreditCard as CreditCardIcon, Pencil, Calendar, Clock, DollarSign, Copy, Check, CalendarPlus, Download } from 'lucide-react';
 import { deleteCreditCard } from '@/services/credit-cards.service';
 import { formatCurrency } from '@/utils/formatters';
-import { adjustToPreviousBusinessDay } from '@/utils/date';
-import { differenceInDays, format, setDate } from 'date-fns';
+import { getActualPaymentDueDate } from '@/utils/date';
+import { downloadPaymentCalendar, getGoogleCalendarUrl } from '@/utils/calendar';
+import { differenceInCalendarDays, format, setDate } from 'date-fns';
 import type { CreditCard } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -44,19 +45,13 @@ function getPaymentDueDateInfo(card: CreditCard) {
     }
   }
 
-  // Create the target date
-  let dueDate = new Date(targetYear, targetMonth, 1);
-  dueDate = setDate(dueDate, Math.min(card.paymentDueDay, new Date(targetYear, targetMonth + 1, 0).getDate()));
-
-  // Adjust to previous business day if needed
-  const adjustedDueDate = adjustToPreviousBusinessDay(dueDate);
-
-  const daysRemaining = differenceInDays(adjustedDueDate, now);
+  const dueDate = getActualPaymentDueDate(targetYear, targetMonth, card.paymentDueDay);
+  const daysRemaining = differenceInCalendarDays(dueDate, now);
 
   return {
-    dueDate: adjustedDueDate,
+    dueDate,
     daysRemaining,
-    formattedDate: format(adjustedDueDate, 'MMM d, yyyy'),
+    formattedDate: format(dueDate, 'MMM d, yyyy'),
   };
 }
 
@@ -85,7 +80,7 @@ function getClosingDateInfo(card: CreditCard) {
   let closingDate = new Date(targetYear, targetMonth, 1);
   closingDate = setDate(closingDate, Math.min(card.billingCycleDay, new Date(targetYear, targetMonth + 1, 0).getDate()));
 
-  const daysRemaining = differenceInDays(closingDate, now);
+  const daysRemaining = differenceInCalendarDays(closingDate, now);
 
   return {
     closingDate,
@@ -120,6 +115,11 @@ export function CreditCardsList({ creditCards }: CreditCardsListProps) {
     }
   };
 
+  const handleGoogleCalendar = (card: CreditCard) => {
+    const url = getGoogleCalendarUrl(card);
+    if (url) window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -151,6 +151,20 @@ export function CreditCardsList({ creditCards }: CreditCardsListProps) {
                   <DropdownMenuItem onClick={() => setPayingCard(card)}>
                     <DollarSign className="mr-2 h-4 w-4" />
                     Pay Card
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => handleGoogleCalendar(card)}
+                    disabled={!card.paymentDueDay}
+                  >
+                    <CalendarPlus className="mr-2 h-4 w-4" />
+                    Add next due date to Google Calendar
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => downloadPaymentCalendar(card)}
+                    disabled={!card.paymentDueDay}
+                  >
+                    <Download className="mr-2 h-4 w-4" />
+                    Download 12 monthly reminders
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => setEditingCard(card)}>

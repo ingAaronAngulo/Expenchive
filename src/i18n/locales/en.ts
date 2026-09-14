@@ -182,6 +182,14 @@ const en = {
     noRecurring: 'No recurring expenses',
     noRecurringDescription: 'Create recurring expenses like subscriptions, rent, or bills that happen regularly.',
     cloudFunctionsNote: 'Recurring expenses are reusable templates that are only registered when you choose to add them.',
+    paymentReminders: 'Payment Reminders',
+    paymentRemindersDescription: 'Get a push notification {{days}} days before each credit card payment is due, plus a reminder on the due date.',
+    paymentRemindersEnabled: 'Push reminders are enabled on this device.',
+    paymentRemindersDisabled: 'Push reminders are disabled on this device.',
+    paymentRemindersUnsupported: 'This browser does not support push notifications. On iPhone, install Expenchive first.',
+    paymentRemindersError: 'Could not enable payment reminders. Check this browser’s notification permission.',
+    enableReminders: 'Enable reminders',
+    disableReminders: 'Disable reminders',
   },
   financial: {
     totalMoney: 'Total Money',
@@ -381,6 +389,8 @@ const en = {
   recurringDialog: {
     addTitle: 'Add Recurring Expense',
     addDescription: 'Create a reusable expense template that you can register with one click.',
+    editTitle: 'Edit Recurring Expense',
+    editDescription: 'Update this reusable expense template.',
     expenseName: 'Expense Name',
     frequency: 'Frequency',
     startDate: 'Start Date',
@@ -392,7 +402,9 @@ const en = {
       categoryRequired: 'Category is required',
       startDateRequired: 'Start date is required',
       selectSource: 'Please select an account or credit card',
+      installmentMonths: 'Installment expenses require at least 2 months',
       failedCreate: 'Failed to create recurring expense',
+      failedUpdate: 'Failed to update recurring expense',
     },
   },
 };

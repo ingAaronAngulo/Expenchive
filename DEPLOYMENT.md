@@ -40,9 +40,12 @@ VITE_FIREBASE_PROJECT_ID=your_project_id
 VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
 VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
 VITE_FIREBASE_APP_ID=your_app_id
+VITE_FIREBASE_VAPID_KEY=your_web_push_certificate_public_key
 ```
 
 **Important**: Get these values from your `.env.local` file or Firebase Console.
+
+For payment push reminders, open **Firebase Console → Project settings → Cloud Messaging → Web Push certificates**, generate a key pair if needed, and use the public key as `VITE_FIREBASE_VAPID_KEY`.
 
 ### 5. Firebase Configuration
 
@@ -52,6 +55,12 @@ Since you're using Firebase, you'll need to:
 2. Or migrate Cloud Functions to Cloudflare Workers if needed
 
 **Current Setup**: Your Firebase functions are in `/functions` directory. These will still run on Firebase, while your frontend runs on Cloudflare Pages.
+
+Deploy the payment-reminder scheduler and token security rules with:
+
+```bash
+firebase deploy --only functions:sendCreditCardPaymentReminders,firestore:rules
+```
 
 ### 6. Deploy
 

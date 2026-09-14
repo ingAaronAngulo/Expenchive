@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ProtectedRoute } from './components/layout/ProtectedRoute';
 import { AppLayout } from './components/layout/AppLayout';
@@ -9,9 +10,23 @@ import { Accounts } from './pages/Accounts';
 import { Settings } from './pages/Settings';
 import { Movements } from './pages/Movements';
 import { useAuth } from './hooks/useAuth';
+import { initializeForegroundNotifications } from './services/notifications.service';
 
 function App() {
   useAuth();
+
+  useEffect(() => {
+    let active = true;
+    let unsubscribe: () => void = () => undefined;
+    void initializeForegroundNotifications().then((cleanup) => {
+      if (active) unsubscribe = cleanup;
+      else cleanup();
+    });
+    return () => {
+      active = false;
+      unsubscribe();
+    };
+  }, []);
 
   return (
     <BrowserRouter>
