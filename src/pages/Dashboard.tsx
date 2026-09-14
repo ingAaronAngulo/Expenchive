@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Camera, Check, History, Plus, Timer } from 'lucide-react';
+import { Camera, Check, CircleDollarSign, History, Timer } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import { useAuth } from '@/hooks/useAuth';
@@ -193,11 +193,11 @@ export function Dashboard() {
           type="button"
           size="icon"
           onClick={() => setIsQuickExpenseOpen(true)}
-          className="fixed bottom-6 right-6 z-40 h-14 w-14 rounded-full shadow-lg hover:scale-105"
+          className="fixed bottom-6 right-6 z-40 hidden h-14 w-14 rounded-full bg-amber-400 text-amber-950 shadow-lg hover:scale-105 hover:bg-amber-300 md:inline-flex"
           aria-label={t('dashboard.quickAddExpense')}
           title={t('dashboard.quickAddExpense')}
         >
-          <Plus className="h-6 w-6" />
+          <CircleDollarSign className="h-7 w-7" strokeWidth={2.25} />
         </Button>
       )}
 

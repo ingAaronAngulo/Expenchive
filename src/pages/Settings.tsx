@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Check, Plus, Repeat } from 'lucide-react';
+import { Check, Languages, LogOut, Moon, Plus, Repeat, Sun } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useRecurringExpenses } from '@/hooks/useRecurringExpenses';
 import { useAccounts } from '@/hooks/useAccounts';
 import { useCreditCards } from '@/hooks/useCreditCards';
 import { useUserSettings } from '@/hooks/useUserSettings';
 import { saveFavoritePaymentMethod } from '@/services/user-settings.service';
+import { signOut } from '@/services/auth.service';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -21,10 +23,13 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { ErrorMessage } from '@/components/common/ErrorMessage';
 import { EmptyState } from '@/components/common/EmptyState';
 import { useAuth } from '@/hooks/useAuth';
+import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from 'react-i18next';
 
 export function Settings() {
+  const navigate = useNavigate();
   const { user } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const { recurringExpenses, loading, error } = useRecurringExpenses();
   const { accounts } = useAccounts();
   const { creditCards } = useCreditCards();
@@ -36,7 +41,21 @@ export function Settings() {
   const [savingFavorite, setSavingFavorite] = useState(false);
   const [favoriteSaved, setFavoriteSaved] = useState(false);
   const [favoriteError, setFavoriteError] = useState<string | null>(null);
-  const { t } = useTranslation();
+  const [signingOut, setSigningOut] = useState(false);
+  const { t, i18n } = useTranslation();
+
+  const currentLanguage = i18n.language.startsWith('es') ? 'es' : 'en';
+
+  const handleSignOut = async () => {
+    setSigningOut(true);
+    try {
+      await signOut();
+      navigate('/login');
+    } catch (signOutError) {
+      console.error('Failed to sign out:', signOutError);
+      setSigningOut(false);
+    }
+  };
 
   useEffect(() => {
     if (favoritePaymentMethod?.type === 'debit') {
@@ -102,6 +121,64 @@ export function Settings() {
               <p className="text-sm">{user.displayName}</p>
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('settings.appearance')}</CardTitle>
+          <CardDescription>{t('settings.appearanceDescription')}</CardDescription>
+        </CardHeader>
+        <CardContent className="divide-y">
+          <div className="flex flex-col gap-3 py-4 first:pt-0 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
+              <Languages className="h-5 w-5 text-muted-foreground" />
+              <div>
+                <p className="text-sm font-medium">{t('settings.language')}</p>
+                <p className="text-xs text-muted-foreground">{t('settings.languageDescription')}</p>
+              </div>
+            </div>
+            <Select value={currentLanguage} onValueChange={(value) => void i18n.changeLanguage(value)}>
+              <SelectTrigger className="w-full sm:w-40"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="en">English</SelectItem>
+                <SelectItem value="es">Español</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
+              {theme === 'light'
+                ? <Sun className="h-5 w-5 text-muted-foreground" />
+                : <Moon className="h-5 w-5 text-muted-foreground" />}
+              <div>
+                <p className="text-sm font-medium">{t('settings.theme')}</p>
+                <p className="text-xs text-muted-foreground">{t('settings.themeDescription')}</p>
+              </div>
+            </div>
+            <Button variant="outline" onClick={toggleTheme} className="w-full sm:w-40">
+              {theme === 'light' ? t('settings.lightTheme') : t('settings.darkTheme')}
+            </Button>
+          </div>
+
+          <div className="flex flex-col gap-3 py-4 pb-0 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
+              <LogOut className="h-5 w-5 text-muted-foreground" />
+              <div>
+                <p className="text-sm font-medium">{t('settings.signOut')}</p>
+                <p className="text-xs text-muted-foreground">{t('settings.signOutDescription')}</p>
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              onClick={handleSignOut}
+              disabled={signingOut}
+              className="w-full text-destructive hover:text-destructive sm:w-40"
+            >
+              {signingOut ? t('settings.signingOut') : t('settings.signOut')}
+            </Button>
+          </div>
         </CardContent>
       </Card>
 

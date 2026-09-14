@@ -4,11 +4,10 @@ import { AppLayout } from './components/layout/AppLayout';
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
 import { Dashboard } from './pages/Dashboard';
-import { Expenses } from './pages/Expenses';
 import { Investments } from './pages/Investments';
 import { Accounts } from './pages/Accounts';
 import { Settings } from './pages/Settings';
-import { Loans } from './pages/Loans';
+import { Movements } from './pages/Movements';
 import { useAuth } from './hooks/useAuth';
 
 function App() {
@@ -28,11 +27,12 @@ function App() {
           }
         >
           <Route index element={<Dashboard />} />
-          <Route path="expenses" element={<Expenses />} />
+          <Route path="movements" element={<Movements />} />
+          <Route path="expenses" element={<Navigate to="/movements?tab=expenses" replace />} />
           <Route path="credit-cards" element={<Navigate to="/accounts?tab=credit" replace />} />
           <Route path="investments" element={<Investments />} />
           <Route path="accounts" element={<Accounts />} />
-          <Route path="loans" element={<Loans />} />
+          <Route path="loans" element={<Navigate to="/movements?tab=loans" replace />} />
           <Route path="snapshots" element={<Navigate to="/?tab=historical" replace />} />
           <Route path="settings" element={<Settings />} />
         </Route>

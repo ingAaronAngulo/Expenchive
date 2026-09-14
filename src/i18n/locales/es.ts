@@ -1,6 +1,7 @@
 const es = {
   nav: {
     dashboard: 'Inicio',
+    movements: 'Movimientos',
     expenses: 'Gastos',
     creditCards: 'Tarjetas de Crédito',
     investments: 'Inversiones',
@@ -8,6 +9,8 @@ const es = {
     loans: 'Préstamos',
     snapshots: 'Historial',
     settings: 'Configuración',
+    quick: 'Rápido',
+    mobileNavigation: 'Navegación móvil',
   },
   header: {
     signOut: 'Cerrar Sesión',
@@ -26,6 +29,17 @@ const es = {
     password: 'Contraseña',
     confirmPassword: 'Confirmar contraseña',
     name: 'Nombre',
+    appearance: 'Preferencias',
+    appearanceDescription: 'Personaliza la aplicación y administra tu sesión.',
+    language: 'Idioma',
+    languageDescription: 'Elige el idioma utilizado en toda la aplicación.',
+    theme: 'Tema',
+    themeDescription: 'Elige el esquema de colores de la aplicación.',
+    lightTheme: 'Claro',
+    darkTheme: 'Oscuro',
+    signOut: 'Cerrar Sesión',
+    signingOut: 'Cerrando sesión...',
+    signOutDescription: 'Cierra la sesión de tu cuenta de Expenchive.',
     signInDescription: 'Inicia sesión en tu cuenta',
     signUpTitle: 'Crear Cuenta',
     signUpDescription: 'Ingresa tu información para comenzar',
@@ -76,6 +90,13 @@ const es = {
     creditCards: 'Tarjetas de Crédito',
     noExpenses: 'Sin gastos aún',
     noExpensesDescription: 'Agrega tu primer gasto para comenzar a controlar tu presupuesto.',
+  },
+  movements: {
+    title: 'Movimientos',
+    description: 'Administra tus gastos y préstamos en un solo lugar',
+    viewTabs: 'Tipos de movimiento',
+    expensesTab: 'Gastos',
+    loansTab: 'Préstamos',
   },
   creditCards: {
     title: 'Tarjetas de Crédito',

@@ -1,6 +1,7 @@
 const en = {
   nav: {
     dashboard: 'Dashboard',
+    movements: 'Movements',
     expenses: 'Expenses',
     creditCards: 'Credit Cards',
     investments: 'Investments',
@@ -8,6 +9,8 @@ const en = {
     loans: 'Loans',
     snapshots: 'Snapshots',
     settings: 'Settings',
+    quick: 'Quick',
+    mobileNavigation: 'Mobile navigation',
   },
   header: {
     signOut: 'Sign Out',
@@ -26,6 +29,17 @@ const en = {
     password: 'Password',
     confirmPassword: 'Confirm Password',
     name: 'Name',
+    appearance: 'Preferences',
+    appearanceDescription: 'Customize the app and manage your session.',
+    language: 'Language',
+    languageDescription: 'Choose the language used throughout the app.',
+    theme: 'Theme',
+    themeDescription: 'Choose the app color scheme.',
+    lightTheme: 'Light',
+    darkTheme: 'Dark',
+    signOut: 'Sign Out',
+    signingOut: 'Signing out...',
+    signOutDescription: 'Sign out of your Expenchive account.',
     signInDescription: 'Sign in to your account',
     signUpTitle: 'Create Account',
     signUpDescription: 'Enter your information to get started',
@@ -76,6 +90,13 @@ const en = {
     creditCards: 'Credit Cards',
     noExpenses: 'No expenses yet',
     noExpensesDescription: 'Add your first expense to start tracking your budget.',
+  },
+  movements: {
+    title: 'Movements',
+    description: 'Manage your expenses and loans in one place',
+    viewTabs: 'Movement types',
+    expensesTab: 'Expenses',
+    loansTab: 'Loans',
   },
   creditCards: {
     title: 'Credit Cards',
